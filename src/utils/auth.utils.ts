@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode";
-import { UserPayload } from "next-auth";
-import { JWTPayload } from "next-auth/jwt";
+import type { UserPayload } from "next-auth";
+import type { JWTPayload } from "next-auth/jwt";
 
 export function getJwtPayload(token: string): JWTPayload | null {
   try {
@@ -10,29 +10,42 @@ export function getJwtPayload(token: string): JWTPayload | null {
   }
 }
 
+function parseBooleanClaim(value: unknown): boolean | undefined {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    if (value.toLowerCase() === "true") return true;
+    if (value.toLowerCase() === "false") return false;
+  }
+  return undefined;
+}
+
 export function parseAccessToken(accessToken: string) {
   try {
     const decoded = jwtDecode<JWTPayload>(accessToken);
+    if (!decoded.sub || !decoded.email || !decoded.username) return null;
+
     return {
       userPayload: {
         id: decoded.sub,
         username: decoded.username,
         email: decoded.email,
-        isVerified: decoded.isVerified,
-        isActive: decoded.isActive,
+        name: decoded.name,
+        isVerified: parseBooleanClaim(decoded.isVerified),
+        isActive: parseBooleanClaim(decoded.isActive),
         role: decoded.role,
-        avatarUrl: decoded.avatarUrl,
+        ...(decoded.avatarUrl ? { avatarUrl: decoded.avatarUrl } : {}),
       } as UserPayload,
-      expires_at: (decoded.exp ?? 0) * 1000,
+      expiresAt: (decoded.exp ?? 0) * 1000,
     };
   } catch {
     return null;
   }
 }
 
-export function getDefaultError(error: any) {
+export function getDefaultError(error: unknown) {
+  const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
   // Throw NEXT_REDIRECT error
-  if (error && typeof error === "object" && error.message === "NEXT_REDIRECT") {
+  if (error instanceof Error && error.message === "NEXT_REDIRECT") {
     throw error;
   }
   
@@ -40,7 +53,7 @@ export function getDefaultError(error: any) {
     success: false,
     statusCode: 500,
     errorCode: "INTERNAL_SERVER_ERROR",
-    message: error?.message || "Internal Server Error",
+    message: errorMessage,
     timestamp: new Date().toISOString()
   };
 }

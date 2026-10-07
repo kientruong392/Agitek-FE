@@ -15,7 +15,7 @@ export async function createServerAxios() {
   const instance = axios.create({
     baseURL: API_URL,
     headers: {
-      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      ...(session?.accessToken ? { Authorization: `Bearer ${session.accessToken}` } : {}),
     },
     validateStatus: () => true,
   });

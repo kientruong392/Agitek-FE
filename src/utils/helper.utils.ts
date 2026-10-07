@@ -1,5 +1,5 @@
-export function getFormData(formData: FormData) {
-  const data = Object.fromEntries(formData) as Record<string, any>;
+export function getFormData(formData: FormData): Record<string, string | File> {
+  const data = Object.fromEntries(formData) as Record<string, string | File>;
 
   Object.keys(data).forEach((key) => {
     if (!(data[key] instanceof File) && typeof data[key] === "string") {
@@ -10,35 +10,49 @@ export function getFormData(formData: FormData) {
   return data;
 }
 
-export function toFormData(values: Record<string, any>): FormData {
-  const formData = new FormData();
-
+export function toFormData(
+  values: Record<string, unknown>, 
+  parentKey = "", 
+  formData = new FormData()
+): FormData {
   Object.keys(values).forEach((key) => {
     const value = values[key];
+    
+    const formKey = parentKey ? `\({parentKey}.\){key}` : key;
 
     if (value === undefined || value === null) {
       return;
     }
-    if (typeof value === "string") {
-      formData.append(key, value.trim());
+
+    if (value instanceof File || value instanceof Blob) {
+      formData.append(formKey, value);
     } 
-    else if (value instanceof File || value instanceof Blob) {
-      formData.append(key, value);
+    else if (Array.isArray(value)) {
+      value.forEach((item, index) => {
+        formData.append(`\({formKey}[\){index}]`, String(item));
+      });
     } 
-    else if (typeof value === "object") {
-      formData.append(key, JSON.stringify(value));
+    else if (typeof value === "object" && value !== null) {
+      toFormData(value as Record<string, unknown>, formKey, formData);
+    } 
+    else if (typeof value === "string") {
+      formData.append(formKey, value.trim());
     } 
     else {
-      formData.append(key, String(value));
+      formData.append(formKey, String(value));
     }
   });
 
   return formData;
 }
 
-export function getErrorMsg(message: string | undefined, t: any) {
+export function getErrorMsg(message: string | undefined, t: (key: string) => string) {
   if (!message) return null;
-  return t(message);
+  try {
+    return t(message);
+  } catch {
+    return message;
+  }
 }
 
 export function validateEmail(email: string): boolean {
