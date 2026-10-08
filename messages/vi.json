@@ -116,5 +116,57 @@
     "send": "Gửi",
     "registerSuccess": "Đăng ký thành công!",
     "invalidResetLink": "Link đổi mật khẩu không hợp lệ hoặc đã hết hạn!"
+  },
+  "Admin": {
+    "groups": {
+      "catalog": "Danh mục",
+      "sales": "Bán hàng",
+      "users": "Người dùng",
+      "interactions": "Tương tác",
+      "system": "Hệ thống"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "products": "Sản phẩm",
+      "categories": "Danh mục",
+      "brands": "Thương hiệu",
+      "orders": "Đơn hàng",
+      "payments": "Thanh toán",
+      "refunds": "Hoàn tiền",
+      "staff": "Quản lý nhân viên",
+      "customers": "Quản lý khách hàng",
+      "vouchers": "Voucher",
+      "reviews": "Đánh giá",
+      "warranties": "Bảo hành",
+      "locations": "Quản lý địa điểm",
+      "audit-logs": "Nhật ký thao tác",
+      "reports": "Báo cáo thống kê"
+    },
+    "breadcrumb": { "management": "Quản lý" },
+    "online": "SYSTEM ONLINE",
+    "down": "SYSTEM DOWN",
+    "logout": "Đăng xuất",
+    "brand": "Agitek Admin",
+    "toggleSidebar": "Mở/đóng thanh điều hướng",
+    "workspace": {
+      "emptyTitle": "Khu vực làm việc",
+      "emptyDescription": "Chức năng cho mục này sẽ được bổ sung sau."
+    },
+    "descriptions": {
+      "dashboard": "Tổng quan hoạt động của cửa hàng.",
+      "products": "Quản lý danh sách sản phẩm và tồn kho.",
+      "brands": "Quản lý thương hiệu sản phẩm.",
+      "orders": "Theo dõi và xử lý đơn hàng.",
+      "payments": "Quản lý giao dịch thanh toán.",
+      "refunds": "Xử lý yêu cầu hoàn tiền.",
+      "staff": "Quản lý tài khoản nhân viên.",
+      "customers": "Quản lý tài khoản khách hàng.",
+      "vouchers": "Quản lý mã giảm giá.",
+      "reviews": "Quản lý đánh giá sản phẩm.",
+      "warranties": "Quản lý yêu cầu bảo hành.",
+      "locations": "Quản lý địa điểm và kho.",
+      "audit-logs": "Theo dõi nhật ký thao tác hệ thống.",
+      "reports": "Báo cáo và thống kê kinh doanh."
+    }
   }
 }

@@ -15,12 +15,17 @@ export function CarouselDots({ className = "" }: CarouselDotsProps) {
   useEffect(() => {
     if (!api) return;
 
-    setScrollSnaps(api.scrollSnapList());
-    setSelectedIndex(api.selectedScrollSnap());
-
-    api.on("select", () => {
+    queueMicrotask(() => {
+      setScrollSnaps(api.scrollSnapList());
       setSelectedIndex(api.selectedScrollSnap());
     });
+
+    const handleSelect = () => setSelectedIndex(api.selectedScrollSnap());
+    api.on("select", handleSelect);
+
+    return () => {
+      api.off("select", handleSelect);
+    };
   }, [api]);
 
   return (

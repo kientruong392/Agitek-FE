@@ -116,5 +116,57 @@
     "send": "Send",
     "registerSuccess": "Registration successful!",
     "invalidResetLink": "Invalid or expired password reset link!"
+  },
+  "Admin": {
+    "groups": {
+      "catalog": "Catalog",
+      "sales": "Sales",
+      "users": "Users",
+      "interactions": "Interactions",
+      "system": "System"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "categories": "Categories",
+      "brands": "Brands",
+      "orders": "Orders",
+      "payments": "Payments",
+      "refunds": "Refunds",
+      "staff": "Staff Management",
+      "customers": "Customer Management",
+      "vouchers": "Vouchers",
+      "reviews": "Reviews",
+      "warranties": "Warranties",
+      "locations": "Locations",
+      "audit-logs": "Audit Logs",
+      "reports": "Reports"
+    },
+    "breadcrumb": { "management": "Management" },
+    "online": "SYSTEM ONLINE",
+    "down": "SYSTEM DOWN",
+    "logout": "Log out",
+    "brand": "Agitek Admin",
+    "toggleSidebar": "Toggle sidebar",
+    "workspace": {
+      "emptyTitle": "Workspace",
+      "emptyDescription": "Features for this section will be added later."
+    },
+    "descriptions": {
+      "dashboard": "Overview of store activity.",
+      "products": "Manage products and stock.",
+      "brands": "Manage product brands.",
+      "orders": "Track and process orders.",
+      "payments": "Manage payment transactions.",
+      "refunds": "Handle refund requests.",
+      "staff": "Manage staff accounts.",
+      "customers": "Manage customer accounts.",
+      "vouchers": "Manage discount vouchers.",
+      "reviews": "Manage product reviews.",
+      "warranties": "Manage warranty requests.",
+      "locations": "Manage locations and warehouses.",
+      "audit-logs": "Review system audit logs.",
+      "reports": "Business reports and statistics."
+    }
   }
 }

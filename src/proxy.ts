@@ -13,6 +13,29 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const authPages = ['/login', '/register', '/verify-account', '/banned'];
   const session = req.auth;
+  const adminPath = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  if (adminPath) {
+    if (!session?.user) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+
+    const role = session.user.role;
+    const allowedRoles = ["SuperAdmin", "Admin", "Manager", "Delivery", "Staff"];
+    if (!role || !allowedRoles.includes(role)) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    const restrictedPrefixes: Record<string, string[]> = {
+      Delivery: ["/admin/orders"],
+      Staff: ["/admin/products", "/admin/brands", "/admin/categories", "/admin/orders", "/admin/reviews", "/admin/warranties"],
+      Manager: ["/admin/products", "/admin/brands", "/admin/categories", "/admin/orders", "/admin/payments", "/admin/refunds", "/admin/staff", "/admin/customers", "/admin/vouchers", "/admin/reviews", "/admin/warranties", "/admin/locations", "/admin/audit-logs", "/admin/reports"],
+    };
+    const roleAllowedPaths = restrictedPrefixes[role];
+    if (roleAllowedPaths && pathname !== "/admin" && !roleAllowedPaths.some((prefix) => pathname.startsWith(prefix))) {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
+  }
 
   if (session && session.user) {
     const user = session.user as UserPayload;

@@ -28,8 +28,8 @@ export function toFormData(
       formData.append(formKey, value);
     } 
     else if (Array.isArray(value)) {
-      value.forEach((item, index) => {
-        formData.append(`\({formKey}[\){index}]`, String(item));
+      value.forEach((item) => {
+        formData.append(formKey, String(item));
       });
     } 
     else if (typeof value === "object" && value !== null) {

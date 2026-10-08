@@ -84,7 +84,6 @@ export default function RightSection({ isLogin }: { isLogin: boolean }) {
               <DropdownMenuItem><UserIcon />Account</DropdownMenuItem>
               <DropdownMenuItem><SettingsIcon />Settings</DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={handleAuth}><LogOutIcon />{t("logout")}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
