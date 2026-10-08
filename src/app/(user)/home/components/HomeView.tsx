@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import HeroCarousel from "@/components/views/Home/HeroCarousel";
-import ProductSection from "@/components/views/Home/ProductSection";
+import HeroCarousel from "@/app/(user)/home/components/HeroCarousel";
+import ProductSection from "@/app/(user)/home/components/ProductSection";
 import {
   getFeaturedProducts,
   getNewestProducts,
@@ -44,3 +44,4 @@ export default function HomeView() {
     </div>
   );
 }
+

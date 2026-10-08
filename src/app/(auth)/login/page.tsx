@@ -1,4 +1,4 @@
-import LoginForm from "@/components/views/Auth/LoginForm";
+﻿import LoginForm from "@/app/(auth)/login/components/LoginForm";
 
 export default function LoginPage() {
   return (
@@ -7,3 +7,4 @@ export default function LoginPage() {
     </main>
   );
 }
+

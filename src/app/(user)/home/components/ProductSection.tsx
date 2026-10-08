@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "motion/react";
 import { AlertCircle } from "lucide-react";
@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import ProductCard from "./ProductCard";
+import ProductCard from "@/app/(user)/components/ProductCard";
 import type { Product } from "@/types/model.types";
 
 export default function ProductSection({ title, products, isLoading, error }: {

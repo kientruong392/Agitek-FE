@@ -168,3 +168,4 @@ export default function AdminSidebar({ user }: { user: UserPayload }) {
     </Sidebar>
   );
 }
+

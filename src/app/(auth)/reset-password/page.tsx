@@ -1,4 +1,4 @@
-import ResetPasswordForm from "@/components/views/Auth/ResetPasswordForm";
+﻿import ResetPasswordForm from "@/app/(auth)/reset-password/components/ResetPasswordForm";
 import { getTranslations } from "next-intl/server";
 
 export default async function ResetPassword({
@@ -25,3 +25,4 @@ export default async function ResetPassword({
         </main>
     );
 }
+

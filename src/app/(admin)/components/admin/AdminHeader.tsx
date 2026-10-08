@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -18,7 +18,7 @@ function LanguageMenu() {
     window.location.reload();
   };
 
-  return <DropdownMenu modal={false}><DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label={t("language")} />}><Globe /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuGroup><DropdownMenuLabel>{t("language")}</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem onClick={() => changeLocale("vi")}>Tiếng Việt</DropdownMenuItem><DropdownMenuItem onClick={() => changeLocale("en")}>English</DropdownMenuItem></DropdownMenuGroup></DropdownMenuContent></DropdownMenu>;
+  return <DropdownMenu modal={false}><DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label={t("language")} />}><Globe /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuGroup><DropdownMenuLabel>{t("language")}</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem onClick={() => changeLocale("vi")}>Tiáº¿ng Viá»‡t</DropdownMenuItem><DropdownMenuItem onClick={() => changeLocale("en")}>English</DropdownMenuItem></DropdownMenuGroup></DropdownMenuContent></DropdownMenu>;
 }
 
 function ThemeToggle() {
@@ -36,3 +36,4 @@ export default function AdminHeader() {
 
   return <header className="flex min-h-16 items-center justify-between gap-3 border-b bg-card px-4 sm:px-6"><div className="flex min-w-0 items-center gap-2"><SidebarTrigger /><div><p className="text-xs text-muted-foreground">{t("breadcrumb.management")}</p><h1 className="truncate font-semibold">{label}</h1></div></div><div className="flex items-center gap-1"><Badge variant="outline" className={status.data ? "gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700" : "gap-1.5 border-red-200 bg-red-50 text-red-700"}>{status.data ? <CheckCircle2 className="size-3" /> : <XCircle className="size-3" />}{status.data ? t("online") : t("down")}</Badge><LanguageMenu /><ThemeToggle /></div></header>;
 }
+

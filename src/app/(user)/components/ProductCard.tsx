@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
@@ -16,7 +16,7 @@ function imageUrl(product: Product) {
   return primary?.imageUrl || FALLBACK_IMAGE;
 }
 
-function formatPrice(value?: number, contactLabel = "Liên hệ") {
+function formatPrice(value?: number, contactLabel = "LiÃªn há»‡") {
   if (value == null) return contactLabel;
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 }
@@ -50,3 +50,4 @@ export default function ProductCard({ product }: { product: Product }) {
     </motion.div>
   );
 }
+

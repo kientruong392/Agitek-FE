@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -42,3 +42,4 @@ export default function ResetPasswordForm({ token }: { token: string }) {
     </CardContent></Card>
   );
 }
+

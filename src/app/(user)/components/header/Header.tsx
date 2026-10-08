@@ -1,7 +1,7 @@
-import { checkLogin } from "@/actions/auth.action";
-import LeftSection from "@/components/views/Header/LeftSection";
-import MiddleSection from "@/components/views/Header/MiddleSection";
-import RightSection from "@/components/views/Header/RightSection";
+﻿import { checkLogin } from "@/actions/auth.action";
+import LeftSection from "@/app/(user)/components/header/LeftSection";
+import MiddleSection from "@/app/(user)/components/header/MiddleSection";
+import RightSection from "@/app/(user)/components/header/RightSection";
 
 export default async function Header() {
   const isLogin = await checkLogin();
@@ -14,3 +14,4 @@ export default async function Header() {
     </header>
   );
 }
+

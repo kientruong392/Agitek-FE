@@ -1,4 +1,4 @@
-import VerifyAccountForm from "@/components/views/Auth/VerifyAccountForm";
+﻿import VerifyAccountForm from "@/app/(user)/verify-account/[id]/components/VerifyAccountForm";
 
 export default async function VerifyAccount({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -8,3 +8,4 @@ export default async function VerifyAccount({ params }: { params: Promise<{ id: 
         </main>
     );
 }
+
