@@ -52,7 +52,7 @@ export interface ProductSpecification {
 export interface Product {
   id: number;
   sku: string;
-  name: string;
+  productName: string;
   slug: string;
   originalPrice: number;
   discountPrice?: number;
@@ -98,4 +98,70 @@ export interface Brand {
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
+}
+
+// Role Name Enum
+export enum RoleName {
+  SuperAdmin = 0,
+  Admin = 1,
+  Manager = 2,
+  Staff = 3,
+  Delivery = 4,
+  Customer = 5,
+  Guest = 6,
+}
+
+export const RoleNameLabels: Record<RoleName, string> = {
+  [RoleName.SuperAdmin]: "Super Admin",
+  [RoleName.Admin]: "Admin",
+  [RoleName.Manager]: "Quản lý",
+  [RoleName.Staff]: "Nhân viên",
+  [RoleName.Delivery]: "Giao hàng",
+  [RoleName.Customer]: "Khách hàng",
+  [RoleName.Guest]: "Khách",
+};
+
+// Gender Type Enum
+export enum GenderType {
+  Male = 0,
+  Female = 1,
+  Other = 2,
+}
+
+export const GenderTypeLabels: Record<GenderType, string> = {
+  [GenderType.Male]: "Nam",
+  [GenderType.Female]: "Nữ",
+  [GenderType.Other]: "Khác",
+};
+
+// User Profile
+export interface UserProfile {
+  userId: number;
+  fullName: string;
+  phoneNumber?: string;
+  avatarUrl?: string;
+  gender?: GenderType;
+  dateOfBirth?: string;
+}
+
+// Granted By User (simplified)
+export interface GrantedByUser {
+  id: number;
+  username: string;
+}
+
+// User DTO
+export interface UserDTO {
+  id: number;
+  username: string;
+  email: string;
+  role: RoleName;
+  roleGrantedAt?: string;
+  isActive: boolean;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  grantedByUser?: GrantedByUser;
+  profile: UserProfile;
 }
