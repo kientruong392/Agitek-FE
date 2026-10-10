@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Globe, LogOutIcon, SettingsIcon, ShoppingCart, UserIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -45,7 +45,7 @@ function LanguageMenu() {
           <DropdownMenuLabel>{t("language")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => switchLanguage("en")}>English</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => switchLanguage("vi")}>Tiáº¿ng Viá»‡t</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => switchLanguage("vi")}>Tiếng Việt</DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { resetPassword } from "@/actions/auth.action";
 import { resetPasswordSchema, type ResetPasswordFormData } from "@/schemas/auth.schema";
-import { getErrorMsg, toFormData } from "@/utils/helper.utils";
+import { getErrorMsg } from "@/utils/helper.utils";
 
 export default function ResetPasswordForm({ token }: { token: string }) {
   const t = useTranslations("Auth");
@@ -22,7 +22,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
   const handleSubmit = async (values: ResetPasswordFormData) => {
     setSuccessMsg(null);
     setServerError(null);
-    const response = await resetPassword(toFormData(values), token);
+    const response = await resetPassword(values, token);
     if (!response?.success) {
       setServerError(response?.errorCode ?? "INTERNAL_SERVER_ERROR");
       return;

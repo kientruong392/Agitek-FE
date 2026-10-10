@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { verifyAccount, resendVerifyCode } from "@/actions/auth.action";
 import { verifyAccountSchema, type VerifyAccountFormData } from "@/schemas/auth.schema";
-import { getErrorMsg, toFormData } from "@/utils/helper.utils";
+import { getErrorMsg } from "@/utils/helper.utils";
 
 export default function VerifyAccountForm({ id }: { id: string }) {
   const t = useTranslations("Auth");
@@ -25,7 +25,7 @@ export default function VerifyAccountForm({ id }: { id: string }) {
   const handleSubmit = async (values: VerifyAccountFormData) => {
     setSuccess(false);
     setServerError(null);
-    const response = await verifyAccount(toFormData(values));
+    const response = await verifyAccount(values);
     if (!response?.success) {
       setServerError(response?.errorCode ?? "INVALID_TOKEN");
       return;

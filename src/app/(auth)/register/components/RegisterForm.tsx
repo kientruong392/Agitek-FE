@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { register, loginWithGoogle } from "@/actions/auth.action";
 import { registerSchema, type RegisterFormData } from "@/schemas/auth.schema";
-import { getErrorMsg, toFormData } from "@/utils/helper.utils";
+import { getErrorMsg } from "@/utils/helper.utils";
 import { useState } from "react";
 
 const fields: (keyof RegisterFormData)[] = ["username", "fullname", "email", "password", "confirmPassword"];
@@ -28,7 +28,7 @@ export default function RegisterForm() {
 
   const handleSubmit = async (values: RegisterFormData) => {
     setServerError(null);
-    const response = await register(toFormData(values));
+    const response = await register(values);
     if (!response?.success) {
       setServerError(response?.errorCode ?? "INTERNAL_SERVER_ERROR");
       return;

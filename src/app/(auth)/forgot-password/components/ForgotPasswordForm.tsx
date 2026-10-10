@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { forgotPassword } from "@/actions/auth.action";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/schemas/auth.schema";
-import { getErrorMsg, toFormData } from "@/utils/helper.utils";
+import { getErrorMsg } from "@/utils/helper.utils";
 
 export default function ForgotPasswordForm() {
   const t = useTranslations("Auth");
@@ -20,7 +20,7 @@ export default function ForgotPasswordForm() {
   const handleSubmit = async (values: ForgotPasswordFormData) => {
     setSuccessMsg(null);
     setServerError(null);
-    const response = await forgotPassword(toFormData(values));
+    const response = await forgotPassword(values);
     if (!response?.success) {
       setServerError(response?.errorCode ?? "INTERNAL_SERVER_ERROR");
       return;

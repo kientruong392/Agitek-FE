@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { login, loginWithGoogle } from "@/actions/auth.action";
 import { loginSchema, type LoginFormData } from "@/schemas/auth.schema";
-import { getErrorMsg, toFormData } from "@/utils/helper.utils";
+import { getErrorMsg } from "@/utils/helper.utils";
 import { useState } from "react";
 
 const loginFields: { name: keyof LoginFormData; labelKey: string; type?: string }[] = [
@@ -25,7 +25,7 @@ export default function LoginForm() {
 
   async function handleSubmit(values: LoginFormData) {
     setServerError(null);
-    const res = await login(toFormData(values));
+    const res = await login(values);
     if (!res?.success) {
       setServerError(res.errorCode ?? "UNAUTHORIZED");
       return;

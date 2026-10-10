@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
@@ -16,7 +16,7 @@ function imageUrl(product: Product) {
   return primary?.imageUrl || FALLBACK_IMAGE;
 }
 
-function formatPrice(value?: number, contactLabel = "LiÃªn há»‡") {
+function formatPrice(value?: number, contactLabel = "Liên hệ") {
   if (value == null) return contactLabel;
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 }
@@ -28,10 +28,10 @@ export default function ProductCard({ product }: { product: Product }) {
     <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="h-full">
       <Card className="h-full overflow-hidden border-border/70">
         <div className="relative aspect-square bg-muted">
-          <Image src={imageUrl(product)} alt={product.name} fill className="object-contain p-5" unoptimized />
+          <Image src={imageUrl(product)} alt={product.productName} fill className="object-contain p-5" unoptimized />
         </div>
         <CardContent className="flex flex-col gap-2 p-4">
-          <p className="line-clamp-2 min-h-10 font-medium">{product.name}</p>
+          <p className="line-clamp-2 min-h-10 font-medium">{product.productName}</p>
           <span className="text-xs text-muted-foreground">{ProductStatusLabels[product.status] ?? ""}</span>
           <div className="flex flex-wrap items-baseline gap-2">
             <strong className="text-lg text-primary">{formatPrice(product.discountPrice ?? product.originalPrice, t("contactPrice"))}</strong>

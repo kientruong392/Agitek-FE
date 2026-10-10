@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -18,7 +18,7 @@ function LanguageMenu() {
     window.location.reload();
   };
 
-  return <DropdownMenu modal={false}><DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label={t("language")} />}><Globe /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuGroup><DropdownMenuLabel>{t("language")}</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem onClick={() => changeLocale("vi")}>Tiáº¿ng Viá»‡t</DropdownMenuItem><DropdownMenuItem onClick={() => changeLocale("en")}>English</DropdownMenuItem></DropdownMenuGroup></DropdownMenuContent></DropdownMenu>;
+  return <DropdownMenu modal={false}><DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label={t("language")} />}><Globe /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuGroup><DropdownMenuLabel>{t("language")}</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem onClick={() => changeLocale("vi")}>Tiếng Việt</DropdownMenuItem><DropdownMenuItem onClick={() => changeLocale("en")}>English</DropdownMenuItem></DropdownMenuGroup></DropdownMenuContent></DropdownMenu>;
 }
 
 function ThemeToggle() {
