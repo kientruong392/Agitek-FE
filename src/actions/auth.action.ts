@@ -1,17 +1,21 @@
 "use server";
 
-import { getFormData } from "@/utils/helper.utils";
 import { getDefaultError } from "@/utils/auth.utils";
 import { signIn, signOut, auth } from "@/auth";
 import { createServerAxios } from "@/lib/axios";
 import { redirect } from "next/navigation";
 import { UserPayload } from "next-auth";
+import type { 
+  LoginFormData, 
+  RegisterFormData, 
+  VerifyAccountFormData, 
+  ForgotPasswordFormData, 
+  ResetPasswordFormData 
+} from "@/schemas/auth.schema";
 
-export async function login(input: FormData | { usernameOrEmail: string; password: string }) {
+export async function login(input: LoginFormData) {
   try {
-    const { usernameOrEmail, password } = input instanceof FormData
-      ? getFormData(input)
-      : input;
+    const { usernameOrEmail, password } = input;
     const axiosInstance = await createServerAxios();
     
     const res = await axiosInstance.post(`/Auth/login`, {
@@ -36,9 +40,9 @@ export async function login(input: FormData | { usernameOrEmail: string; passwor
   }
 }
 
-export async function register(formData: FormData) {
+export async function register(input: RegisterFormData) {
   try {
-    const { email, username, password, confirmPassword } = getFormData(formData);
+    const { email, username, password, confirmPassword } = input;
     const axiosInstance = await createServerAxios();
 
     const res = await axiosInstance.post(`/Auth/register`, {
@@ -84,10 +88,9 @@ export async function logout() {
   redirect("/login");
 }
 
-export async function verifyAccount(formData: FormData) {
+export async function verifyAccount(input: VerifyAccountFormData) {
   try {
-    const values = getFormData(formData);
-    const token = typeof values.token === "string" ? values.token.trim() : "";
+    const token = input.token.trim();
     const axiosInstance = await createServerAxios();
     const res = await axiosInstance.post(`/Auth/verify-account`, JSON.stringify(token), {
       headers: { "Content-Type": "application/json" },
@@ -121,9 +124,9 @@ export async function resendVerifyCode(id: string) {
   }
 }
 
-export async function forgotPassword(formData: FormData) {
+export async function forgotPassword(input: ForgotPasswordFormData) {
   try {
-    const { email } = getFormData(formData);
+    const { email } = input;
     const axiosInstance = await createServerAxios();
 
     const res = await axiosInstance.post(`/Auth/forgot-password`, {
@@ -136,9 +139,9 @@ export async function forgotPassword(formData: FormData) {
   }
 }
 
-export async function resetPassword(formData: FormData, token: string) {
+export async function resetPassword(input: ResetPasswordFormData, token: string) {
   try {
-    const { password, confirmPassword } = getFormData(formData);
+    const { password, confirmPassword } = input;
     const axiosInstance = await createServerAxios();
 
     const res = await axiosInstance.post(`/Auth/reset-password`, {
