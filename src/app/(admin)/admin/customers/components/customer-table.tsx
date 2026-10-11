@@ -6,13 +6,13 @@ import {
   ColumnDef, flexRender, useTable, Row, tableFeatures, coreFeatures,
   columnVisibilityFeature, columnFilteringFeature, globalFilteringFeature,
   rowSortingFeature, columnFacetingFeature, rowPaginationFeature,
-  createSortedRowModel, createFilteredRowModel,
+  createSortedRowModel, createFilteredRowModel, createPaginatedRowModel,
 } from "@tanstack/react-table";
 import type { HeaderGroup, Header, Cell, SortingState } from "@tanstack/react-table";
 import {
   MoreHorizontal, Eye, ShieldAlert, ShieldCheck, ArrowUpDown, Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ const features = tableFeatures({
   rowPaginationFeature,
   sortedRowModel: createSortedRowModel(),
   filteredRowModel: createFilteredRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
 });
 
 type Features = typeof features;
@@ -238,23 +239,30 @@ export default function CustomerDataTable({ data, onUpdated }: CustomerDataTable
   const [globalFilter, setGlobalFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [sorting, setSorting] = useState<SortingState>([]);
-  const columns = createColumns(onUpdated);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const columns = useMemo(() => createColumns(onUpdated), [onUpdated]);
 
-  const filteredData = data.filter((u) => {
-    if (roleFilter === "all") return true;
-    return u.role === Number(roleFilter);
-  });
+  const filteredData = useMemo(() => {
+    if (roleFilter === "all") return data;
+    return data.filter((u) => u.role === Number(roleFilter));
+  }, [data, roleFilter]);
 
   const table = useTable({
     features,
     data: filteredData,
     columns,
+    autoResetPageIndex: false,
     state: {
       globalFilter,
       sorting,
+      pagination,
     },
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: (val) => {
+      setGlobalFilter(val);
+      setPagination((p) => ({ ...p, pageIndex: 0 }));
+    },
     onSortingChange: setSorting,
+    onPaginationChange: setPagination,
   });
 
   return (
@@ -264,10 +272,19 @@ export default function CustomerDataTable({ data, onUpdated }: CustomerDataTable
         <Input
           placeholder={t("searchPlaceholder")}
           value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
+          onChange={(e) => {
+            setGlobalFilter(e.target.value);
+            setPagination((p) => ({ ...p, pageIndex: 0 }));
+          }}
           className="max-w-sm"
         />
-        <Select value={roleFilter} onValueChange={(val) => setRoleFilter(val || "all")}>
+        <Select
+          value={roleFilter}
+          onValueChange={(val) => {
+            setRoleFilter(val || "all");
+            setPagination((p) => ({ ...p, pageIndex: 0 }));
+          }}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder={t("filterRole")}>
               {roleFilter === "all" ? t("filterAll") : RoleNameLabels[parseInt(roleFilter) as RoleName]}
@@ -329,6 +346,16 @@ export default function CustomerDataTable({ data, onUpdated }: CustomerDataTable
           })}
         </div>
         <div className="flex items-center gap-2">
+          <Select value={String(table.state.pagination.pageSize)} onValueChange={(val) => table.setPageSize(Number(val))}>
+            <SelectTrigger className="w-[70px] h-9 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 20, 30, 40, 50].map(size => (
+                <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
             {t("prevPage")}
           </Button>

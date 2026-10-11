@@ -165,3 +165,49 @@ export interface UserDTO {
   grantedByUser?: GrantedByUser;
   profile: UserProfile;
 }
+
+// Discount Type Enum
+export enum DiscountType {
+  Percentage = 0,
+  FixedAmount = 1,
+}
+
+export const DiscountTypeLabels: Record<DiscountType, string> = {
+  [DiscountType.Percentage]: "Phần trăm (%)",
+  [DiscountType.FixedAmount]: "Giá tiền (₫)",
+};
+
+// Voucher Status Enum
+export enum VoucherStatus {
+  Active = 0,
+  Inactive = 1,
+  Expired = 2,
+  LowStock = 3,
+  OutOfStock = 4,
+}
+
+export const VoucherStatusLabels: Record<VoucherStatus, string> = {
+  [VoucherStatus.Active]: "Hoạt động",
+  [VoucherStatus.Inactive]: "Không hoạt động",
+  [VoucherStatus.Expired]: "Đã hết hạn",
+  [VoucherStatus.LowStock]: "Sắp hết",
+  [VoucherStatus.OutOfStock]: "Đã hết",
+};
+
+// Voucher DTO
+export interface VoucherDTO {
+  id: number;
+  code: string;
+  name: string;
+  description?: string;
+  discountType: DiscountType;
+  discountValue: number;
+  maxDiscountValue?: number;
+  minOrderValue: number;
+  initialQuantity: number;
+  quantity: number;
+  usedCount: number;
+  startDate: string;
+  endDate: string;
+  status: VoucherStatus;
+}

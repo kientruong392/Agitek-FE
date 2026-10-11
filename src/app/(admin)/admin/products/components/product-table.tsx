@@ -6,14 +6,14 @@ import {
   ColumnDef, flexRender, useTable, Row, tableFeatures, coreFeatures,
   columnVisibilityFeature, columnFilteringFeature, globalFilteringFeature,
   rowSortingFeature, columnFacetingFeature, rowPaginationFeature, createSortedRowModel,
-  createFilteredRowModel
+  createFilteredRowModel, createPaginatedRowModel,
 } from "@tanstack/react-table";
 import type { HeaderGroup, Header, Cell } from "@tanstack/react-table";
 import {
   MoreHorizontal, Pencil, Trash2, Loader2, RotateCcw, Flame,
   ArrowUpDown, Star,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,7 @@ const features = tableFeatures({
   rowPaginationFeature,
   sortedRowModel: createSortedRowModel(),
   filteredRowModel: createFilteredRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
 });
 
 type Features = typeof features;
@@ -370,25 +371,32 @@ export default function ProductDataTable({ data, onDeleted, onUpdated, showDelet
   const [globalFilter, setGlobalFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sorting, setSorting] = useState<SortingState>([]);
-  const columns = createColumns(onDeleted, onUpdated, showDeleted);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const columns = useMemo(() => createColumns(onDeleted, onUpdated, showDeleted), [onDeleted, onUpdated, showDeleted]);
 
   // Filter data by status before passing to table
-  const filteredData = data.filter((p) => {
-    if (showDeleted) return p.status === ProductStatus.Deleted;
-    if (statusFilter === "all") return p.status !== ProductStatus.Deleted;
-    return p.status === Number(statusFilter) && p.status !== ProductStatus.Deleted;
-  });
+  const filteredData = useMemo(() => {
+    if (showDeleted) return data.filter((p) => p.status === ProductStatus.Deleted);
+    if (statusFilter === "all") return data.filter((p) => p.status !== ProductStatus.Deleted);
+    return data.filter((p) => p.status === Number(statusFilter) && p.status !== ProductStatus.Deleted);
+  }, [data, showDeleted, statusFilter]);
 
   const table = useTable({
     features,
     data: filteredData,
     columns,
+    autoResetPageIndex: false,
     state: {
       globalFilter,
       sorting,
+      pagination,
     },
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: (val) => {
+      setGlobalFilter(val);
+      setPagination((p) => ({ ...p, pageIndex: 0 }));
+    },
     onSortingChange: setSorting,
+    onPaginationChange: setPagination,
   });
 
   return (
@@ -398,11 +406,20 @@ export default function ProductDataTable({ data, onDeleted, onUpdated, showDelet
         <Input
           placeholder={t("searchPlaceholder")}
           value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
+          onChange={(e) => {
+            setGlobalFilter(e.target.value);
+            setPagination((p) => ({ ...p, pageIndex: 0 }));
+          }}
           className="max-w-sm"
         />
         {!showDeleted && (
-          <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "all")}>
+          <Select
+            value={statusFilter}
+            onValueChange={(val) => {
+              setStatusFilter(val || "all");
+              setPagination((p) => ({ ...p, pageIndex: 0 }));
+            }}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder={t("filterStatus")}>
                 {statusFilter === "all" ? t("filterAll") : ProductStatusLabels[parseInt(statusFilter) as ProductStatus]}
@@ -469,6 +486,16 @@ export default function ProductDataTable({ data, onDeleted, onUpdated, showDelet
           })}
         </div>
         <div className="flex items-center gap-2">
+          <Select value={String(table.state.pagination.pageSize)} onValueChange={(val) => table.setPageSize(Number(val))}>
+            <SelectTrigger className="w-[70px] h-9 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 20, 30, 40, 50].map(size => (
+                <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
             {t("prevPage")}
           </Button>
