@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { Menu, Search } from "lucide-react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { getCategories } from "@/actions/home.action";
@@ -48,9 +49,14 @@ export default function MiddleSection() {
                 <DropdownMenuSubTrigger>{category.categoryName}</DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   <DropdownMenuGroup>
-                    {category.subCategories?.length ? category.subCategories.map((subCategory) => (
-                      <DropdownMenuItem key={subCategory.id}>{subCategory.categoryName}</DropdownMenuItem>
-                    )) : <DropdownMenuItem disabled>{category.categoryName}</DropdownMenuItem>}
+                    <DropdownMenuItem nativeButton={false} render={<Link href={`/category/${category.slug}`} />}>
+                      {category.categoryName}
+                    </DropdownMenuItem>
+                    {category.subCategories?.map((subCategory) => (
+                      <DropdownMenuItem key={subCategory.id} nativeButton={false} render={<Link href={`/category/${subCategory.slug}`} />}>
+                        {subCategory.categoryName}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuGroup>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
