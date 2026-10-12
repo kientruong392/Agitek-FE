@@ -29,8 +29,8 @@ export default function HomeView() {
     queryFn: () => getCategoryWithProductsBySlug("pc-gaming"),
   });
   const components = useQuery({
-    queryKey: ["category-products", "linh-kien-may-tinh"],
-    queryFn: () => getCategoryWithProductsBySlug("linh-kien-may-tinh"),
+    queryKey: ["category-products", "linh-kien-pc"],
+    queryFn: () => getCategoryWithProductsBySlug("linh-kien-pc"),
   });
 
   return (
