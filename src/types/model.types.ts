@@ -211,3 +211,46 @@ export interface VoucherDTO {
   endDate: string;
   status: VoucherStatus;
 }
+
+// Location Status Enum
+export enum LocationStatus {
+  Active = 0,
+  Inactive = 1,
+  Maintenance = 2,
+}
+
+export const LocationStatusLabels: Record<LocationStatus, string> = {
+  [LocationStatus.Active]: "Hoạt động",
+  [LocationStatus.Inactive]: "Ngừng hoạt động",
+  [LocationStatus.Maintenance]: "Bảo trì",
+};
+
+// Location DTOs
+export interface LocationDTO {
+  id: number;
+  locationCode: string;
+  locationName: string;
+  latitude: number;
+  longitude: number;
+  isWarehouse: boolean;
+  status: LocationStatus | null;
+}
+
+export interface CreateLocationDTO {
+  locationCode: string;
+  locationName: string;
+  latitude: number;
+  longitude: number;
+  isWarehouse: boolean;
+  status?: LocationStatus | null;
+}
+
+export interface UpdateLocationDTO {
+  locationCode?: string;
+  locationName?: string;
+  latitude?: number;
+  longitude?: number;
+  isWarehouse?: boolean;
+  status?: LocationStatus | null;
+}
+
