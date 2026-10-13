@@ -2,7 +2,7 @@
 
 import { createServerAxios } from "@/lib/axios";
 import { getDefaultError } from "@/utils/auth.utils";
-import type { ApiResponse, Product } from "@/types/model.types";
+import type { ApiResponse, Product, ProductReview } from "@/types/model.types";
 
 export async function getAllProducts(): Promise<ApiResponse<Product[]>> {
   try {
@@ -21,6 +21,26 @@ export async function getProductById(id: number): Promise<ApiResponse<Product>> 
     return res.data;
   } catch (error) {
     return getDefaultError(error) as ApiResponse<Product>;
+  }
+}
+
+export async function getProductBySlug(slug: string): Promise<ApiResponse<Product>> {
+  try {
+    const axiosInstance = await createServerAxios();
+    const res = await axiosInstance.get(`/Product/slug/${encodeURIComponent(slug)}`);
+    return res.data;
+  } catch (error) {
+    return getDefaultError(error) as ApiResponse<Product>;
+  }
+}
+
+export async function getProductReviews(productId: number): Promise<ApiResponse<ProductReview[]>> {
+  try {
+    const axiosInstance = await createServerAxios();
+    const res = await axiosInstance.get(`/Review/product/${productId}`);
+    return res.data;
+  } catch (error) {
+    return getDefaultError(error) as ApiResponse<ProductReview[]>;
   }
 }
 

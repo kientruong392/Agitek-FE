@@ -48,6 +48,41 @@ export interface ProductSpecification {
   specValue: string;
 }
 
+export enum MediaType {
+  Image = 0,
+  Video = 1,
+}
+
+export interface ReviewMedia {
+  id: number;
+  mediaUrl: string;
+  mediaType: MediaType;
+}
+
+export interface ReviewUser {
+  id: number;
+  profile: {
+    fullName: string;
+    avatarUrl?: string | null;
+  };
+}
+
+export interface ProductReview {
+  id: number;
+  orderId: number;
+  productId: number;
+  userId: number;
+  user?: ReviewUser | null;
+  rating: number;
+  comment?: string | null;
+  replyUserId?: number | null;
+  replyComment?: string | null;
+  replyCreatedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  medias: ReviewMedia[];
+}
+
 // Product DTO
 export interface Product {
   id: number;
@@ -142,6 +177,46 @@ export interface UserProfile {
   avatarUrl?: string;
   gender?: GenderType;
   dateOfBirth?: string;
+}
+
+export interface Address {
+  id: number;
+  userId: number;
+  receiverName: string;
+  phoneNumber: string;
+  addressLine: string;
+  isDefault: boolean;
+}
+
+export interface UpdateMyAccountInput {
+  username?: string;
+}
+
+export interface ChangeMyPasswordInput {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface UpdateProfileInput {
+  fullName?: string;
+  phoneNumber?: string;
+  avatarUrl?: string;
+  gender?: GenderType | null;
+  dateOfBirth?: string | null;
+}
+
+export interface CreateAddressInput {
+  receiverName: string;
+  phoneNumber: string;
+  addressLine: string;
+  isDefault: boolean;
+}
+
+export interface UpdateAddressInput {
+  receiverName?: string;
+  phoneNumber?: string;
+  addressLine?: string;
+  isDefault?: boolean;
 }
 
 // Granted By User (simplified)

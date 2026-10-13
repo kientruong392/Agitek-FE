@@ -35,8 +35,8 @@ function Tabs({ items, value, onValueChange, children, className }: TabsProps) {
   };
 
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
-      <div role="tablist" className="flex gap-2 border-b">
+    <div className={cn("flex w-full flex-col gap-4", className)}>
+      <div role="tablist" className="flex w-full border-b">
         {items.map((item, index) => {
           const selected = item.value === value;
           return (
@@ -51,7 +51,7 @@ function Tabs({ items, value, onValueChange, children, className }: TabsProps) {
               aria-controls={`${tabIds}-panel-${item.value}`}
               tabIndex={selected ? 0 : -1}
               className={cn(
-                "border-b-2 px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "-mb-px flex-1 border-b-2 px-4 py-2 text-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 selected ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               )}
               onClick={() => onValueChange(item.value)}
