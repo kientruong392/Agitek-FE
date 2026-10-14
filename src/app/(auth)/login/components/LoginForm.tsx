@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useForm } from "@tanstack/react-form";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,9 +17,8 @@ const loginFields: { name: keyof LoginFormData; labelKey: string; type?: string 
   { name: "password", labelKey: "password", type: "password" },
 ];
 
-export default function LoginForm() {
+export default function LoginForm({ returnTo = "/" }: { returnTo?: string }) {
   const t = useTranslations("Auth");
-  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
   async function handleSubmit(values: LoginFormData) {
@@ -30,8 +28,7 @@ export default function LoginForm() {
       setServerError(res.errorCode ?? "UNAUTHORIZED");
       return;
     }
-    router.refresh();
-    router.push("/");
+    window.location.assign(returnTo);
   }
 
   const form = useForm({

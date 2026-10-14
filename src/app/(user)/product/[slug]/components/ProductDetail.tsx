@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { toast } from "@/components/ui/toast";
+import { useCart } from "@/components/providers/CartProvider";
 import { ChevronLeft, ChevronRight, ShoppingCart, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Product, ProductReview, ReviewMedia } from "@/types/model.types";
@@ -105,6 +107,9 @@ function ReviewItem({ review, t }: { review: ProductReview; t: (key: string, val
 
 export default function ProductDetail({ product, reviews }: { product: Product; reviews: ProductReview[] }) {
   const t = useTranslations("ProductDetail");
+  const cartT = useTranslations("Cart");
+  const { addItem } = useCart();
+  const [addingToCart, setAddingToCart] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("specifications");
@@ -153,6 +158,12 @@ export default function ProductDetail({ product, reviews }: { product: Product; 
   const nextImage = (direction: number) => {
     if (!images.length) return;
     setActiveImage((current) => (current + direction + images.length) % images.length);
+  };
+  const handleAddToCart = async (selectedQuantity = quantity) => {
+    setAddingToCart(true);
+    const added = await addItem(product.id, selectedQuantity);
+    setAddingToCart(false);
+    toast.add({ title: added ? cartT("addSuccess") : cartT("addError"), type: added ? "success" : "error" });
   };
 
   return (
@@ -226,9 +237,8 @@ export default function ProductDetail({ product, reviews }: { product: Product; 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pb-0">
-            <Button size="lg" disabled={!canPurchase}><ShoppingCart />{t("buyNow")}</Button>
-            <Button size="lg" variant="outline" disabled={!canPurchase}><ShoppingCart />{t("addToCart")}</Button>
+          <div className="pb-0">
+            <Button size="lg" className="w-full" disabled={!canPurchase || addingToCart} onClick={() => void handleAddToCart()}><ShoppingCart />{addingToCart ? cartT("adding") : t("addToCart")}</Button>
           </div>
         </div>
       </section>

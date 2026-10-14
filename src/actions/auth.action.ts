@@ -159,7 +159,7 @@ export async function resetPassword(input: ResetPasswordFormData, token: string)
 export async function checkLogin() {
   try {
     const session = await auth();
-    return !!session;
+    return !!session?.user && !session.error;
   } catch {
     return false;
   }

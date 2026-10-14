@@ -2,6 +2,9 @@
 
 import Image from "next/image";
 import { ShoppingCart, Star } from "lucide-react";
+import { useState } from "react";
+import { toast } from "@/components/ui/toast";
+import { useCart } from "@/components/providers/CartProvider";
 import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +42,9 @@ function statusVariant(status: ProductStatus) {
 
 export default function ProductCard({ product }: { product: Product }) {
   const t = useTranslations("Home");
+  const cartT = useTranslations("Cart");
+  const { addItem } = useCart();
+  const [adding, setAdding] = useState(false);
   const isPreOrder = product.status === ProductStatus.PreOrder;
   const isOutOfStock = product.status === ProductStatus.OutOfStock || product.stockQuantity <= 0;
   const canPurchase = isPreOrder || (!isOutOfStock && [ProductStatus.InStock, ProductStatus.LowStock].includes(product.status));
@@ -59,6 +65,13 @@ export default function ProductCard({ product }: { product: Product }) {
   }[effectiveStatus] ?? t("outOfStock");
   const hasDiscount = product.discountPrice != null && product.discountPrice < product.originalPrice;
   const price = hasDiscount ? product.discountPrice : product.originalPrice;
+
+  const handleAddToCart = async () => {
+    setAdding(true);
+    const added = await addItem(product.id, 1);
+    setAdding(false);
+    toast.add({ title: added ? cartT("addSuccess") : cartT("addError"), type: added ? "success" : "error" });
+  };
 
   return (
     <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="h-full">
@@ -86,9 +99,9 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         </CardContent>
         <CardFooter className="px-3 pb-3 pt-1">
-          <Button className="w-full" disabled={unavailable} variant={unavailable ? "outline" : "default"}>
+          <Button className="w-full" disabled={unavailable || adding} variant={unavailable ? "outline" : "default"} onClick={() => void handleAddToCart()}>
             <ShoppingCart />
-            {isOutOfStock && !isPreOrder ? t("outOfStock") : t("addtoCart")}
+            {isOutOfStock && !isPreOrder ? t("outOfStock") : adding ? cartT("adding") : t("addtoCart")}
           </Button>
         </CardFooter>
       </Card>
