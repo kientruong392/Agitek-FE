@@ -30,6 +30,59 @@ export const ProductStatusLabels: Record<ProductStatus, string> = {
   [ProductStatus.Deleted]: "Đã xóa",
 };
 
+export enum OrderStatus {
+  Ordered = 0,
+  Confirmed = 1,
+  Shipped = 2,
+  InTransit = 3,
+  Delivered = 4,
+  Completed = 5,
+  Returned = 6,
+  Cancelled = 7,
+  Refunded = 8,
+  Paid = 9,
+}
+
+export const OrderStatusLabels: Record<OrderStatus, string> = {
+  [OrderStatus.Ordered]: "Chờ thanh toán",
+  [OrderStatus.Confirmed]: "Đã xác nhận",
+  [OrderStatus.Shipped]: "Đã giao cho đơn vị vận chuyển",
+  [OrderStatus.InTransit]: "Đang vận chuyển",
+  [OrderStatus.Delivered]: "Đã giao",
+  [OrderStatus.Completed]: "Đã giao",
+  [OrderStatus.Returned]: "Giao thất bại",
+  [OrderStatus.Cancelled]: "Đã hủy",
+  [OrderStatus.Refunded]: "Đã hoàn tiền",
+  [OrderStatus.Paid]: "Đã thanh toán",
+};
+
+export interface OrderDetail {
+  orderId: number;
+  productId: number;
+  productName: string;
+  productSlug: string;
+  productImageUrl?: string | null;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  hasReview: boolean;
+}
+
+export interface Order {
+  id: number;
+  paymentId?: number | null;
+  trackingNumber: string;
+  userId: number;
+  address: string;
+  subtotalPrice: number;
+  shippingFee: number;
+  discountAmount: number;
+  totalPrice: number;
+  status: OrderStatus;
+  createdAt: string;
+  orderDetails: OrderDetail[];
+}
+
 // Product Image
 export interface ProductImage {
   id: number;
@@ -270,6 +323,12 @@ export const VoucherStatusLabels: Record<VoucherStatus, string> = {
 };
 
 // Voucher DTO
+export interface VoucherApplication {
+  voucherId: number;
+  code: string;
+  discountAmount: number;
+}
+
 export interface VoucherDTO {
   id: number;
   code: string;

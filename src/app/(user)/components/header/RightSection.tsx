@@ -1,10 +1,11 @@
 "use client";
 
-import { Globe, LogOutIcon, SettingsIcon, ShoppingCart, UserIcon } from "lucide-react";
+import { ClipboardList, Globe, LogOutIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import ColorModeToggle from "@/components/shared/ColorModeToggle";
 import {
   DropdownMenu,
@@ -17,16 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCurrentUser, logout } from "@/actions/auth.action";
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-function CartButton() {
-  const t = useTranslations("Header");
-  return (
-    <Button variant="ghost" size="icon" aria-label={t("cart")} className="relative">
-      <ShoppingCart />
-      <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-semibold text-white">0</span>
-    </Button>
-  );
-}
+import CartPopover from "./CartPopover";
 
 function LanguageMenu() {
   const t = useTranslations("Header");
@@ -68,7 +60,7 @@ export default function RightSection({ isLogin }: { isLogin: boolean }) {
 
   return (
     <div className="flex shrink-0 items-center gap-1 md:gap-2">
-      <CartButton />
+      <CartPopover />
       {!isLogin && <Button className="rounded-full font-semibold" onClick={handleAuth}>{t("login")}</Button>}
       {isLogin && (
         <DropdownMenu modal={false}>
@@ -81,7 +73,8 @@ export default function RightSection({ isLogin }: { isLogin: boolean }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuItem><UserIcon />Account</DropdownMenuItem>
+              <DropdownMenuItem nativeButton={false} render={<Link href="/profile/" />}><UserIcon />Account</DropdownMenuItem>
+              <DropdownMenuItem nativeButton={false} render={<Link href="/orders/" />}><ClipboardList />Đơn hàng của tôi</DropdownMenuItem>
               <DropdownMenuItem><SettingsIcon />Settings</DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuItem variant="destructive" onClick={handleAuth}><LogOutIcon />{t("logout")}</DropdownMenuItem>
@@ -93,4 +86,3 @@ export default function RightSection({ isLogin }: { isLogin: boolean }) {
     </div>
   );
 }
-
