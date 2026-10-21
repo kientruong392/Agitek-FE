@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Check, LoaderCircle, MapPin, TicketPercent, Truck } from "lucide-react";
 import { applyVoucher, createGuestOrder, createOrder, type GuestCheckoutInput, type ShippingType } from "@/actions/order.action";
@@ -26,6 +27,7 @@ const SHIPPING_FEES: Record<ShippingType, number> = { 0: 30000, 1: 50000 };
 const FALLBACK_IMAGE = "/images/no-image.png";
 const PHONE_PATTERN = /^(?:\+84|0)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/;
 const MAX_ORDER_NOTE_LENGTH = 255;
+const LocationMap = dynamic(() => import("@/app/(admin)/admin/locations/components/location-map"), { ssr: false, loading: () => <div className="h-96 animate-pulse rounded-xl bg-muted" /> });
 
 function formatPrice(value: number) {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
@@ -47,16 +49,23 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [guestAddress, setGuestAddress] = useState("");
+  const [deliveryPosition, setDeliveryPosition] = useState<[number, number]>([21.028511, 105.854167]);
+  const [hasManualMapSelection, setHasManualMapSelection] = useState(false);
+  const [firstSuggestedPosition, setFirstSuggestedPosition] = useState<[number, number] | null>(null);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
   const [voucher, setVoucher] = useState<{ voucherId: number; code: string; discountAmount: number } | null>(null);
   const [guestErrors, setGuestErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
   const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses[0];
+  const deliveryAddressQuery = isLogin ? defaultAddress?.addressLine ?? "" : guestAddress;
   const accountDisplayName = account?.profile.fullName;
 
   useEffect(() => {
     let cancelled = false;
-    setProductsLoading(true);
+    void Promise.resolve().then(() => {
+      if (!cancelled) setProductsLoading(true);
+    });
     void Promise.all(items.map(async (item) => {
       const response = await getProductById(item.productId);
       if (!response.success || !response.data) return null;
@@ -92,6 +101,32 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
     totalPrice: unitPrice * quantity,
   }));
 
+  useEffect(() => {
+    const query = deliveryAddressQuery.trim();
+    if (query.length < 5 || hasManualMapSelection) return;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setIsSearchingAddress(true);
+      try {
+        const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=vi`, { signal: controller.signal });
+        if (!response.ok) return;
+        const payload = await response.json();
+        const feature = payload.features?.[0];
+        const [lng, lat] = feature?.geometry?.coordinates ?? [];
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          const position: [number, number] = [Number(Number(lat).toFixed(6)), Number(Number(lng).toFixed(6))];
+          setFirstSuggestedPosition(position);
+          setDeliveryPosition(position);
+        }
+      } catch {
+        // Keep the default map position when address lookup is unavailable.
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 500);
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, [deliveryAddressQuery, hasManualMapSelection]);
+
   const voucherMutation = useMutation({
     mutationFn: () => applyVoucher(voucherCode.trim(), subtotal),
     onSuccess: (response) => {
@@ -110,6 +145,7 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
   const orderMutation = useMutation({
     mutationFn: async () => {
       const payload = {
+        createLocation: { latitude: deliveryPosition[0], longitude: deliveryPosition[1] },
         voucherCode: voucher?.code ?? null,
         shippingType,
         paymentMethod,
@@ -209,9 +245,14 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2"><Label htmlFor="guest-name">{t("fullName")}</Label><Input id="guest-name" autoComplete="name" value={guestName} aria-invalid={!!guestErrors.fullName} onChange={(event) => setGuestName(event.target.value)} />{guestErrors.fullName && <p className="text-xs text-destructive">{guestErrors.fullName}</p>}</div>
                     <div className="space-y-2"><Label htmlFor="guest-phone">{t("phoneNumber")}</Label><Input id="guest-phone" type="tel" autoComplete="tel" value={guestPhone} aria-invalid={!!guestErrors.phoneNumber} onChange={(event) => setGuestPhone(event.target.value)} />{guestErrors.phoneNumber && <p className="text-xs text-destructive">{guestErrors.phoneNumber}</p>}</div>
-                    <div className="space-y-2 sm:col-span-2"><Label htmlFor="guest-address">{t("address")}</Label><Textarea id="guest-address" autoComplete="street-address" value={guestAddress} aria-invalid={!!guestErrors.address} onChange={(event) => setGuestAddress(event.target.value)} />{guestErrors.address && <p className="text-xs text-destructive">{guestErrors.address}</p>}</div>
+                    <div className="space-y-2 sm:col-span-2"><Label htmlFor="guest-address">{t("address")}</Label><Textarea id="guest-address" autoComplete="street-address" value={guestAddress} aria-invalid={!!guestErrors.address} onChange={(event) => { setGuestAddress(event.target.value); setHasManualMapSelection(false); }} />{guestErrors.address && <p className="text-xs text-destructive">{guestErrors.address}</p>}</div>
                   </div>
                 )}
+                <div className="mt-5 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-sm font-semibold">Vị trí giao hàng chính xác</p><p className="text-xs text-muted-foreground">Kéo ghim hoặc chạm lên bản đồ để chọn điểm giao.</p></div><span className="text-xs text-muted-foreground">{isSearchingAddress ? "Đang tìm địa chỉ..." : hasManualMapSelection ? "Đã chọn thủ công" : firstSuggestedPosition ? "Đã dùng gợi ý địa chỉ đầu tiên" : "Vị trí mặc định"}</span></div>
+                  <LocationMap lat={deliveryPosition[0]} lng={deliveryPosition[1]} onPositionChange={(lat, lng) => { setDeliveryPosition([lat, lng]); setHasManualMapSelection(true); }} className="h-96 w-full overflow-hidden rounded-2xl border" zoom={13} />
+                  <p className="text-xs text-muted-foreground">Tọa độ: {deliveryPosition[0].toFixed(6)}, {deliveryPosition[1].toFixed(6)}</p>
+                </div>
               </CardContent>
             </Card>
 

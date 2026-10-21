@@ -28,8 +28,8 @@ export default auth((req) => {
 
     const restrictedPrefixes: Record<string, string[]> = {
       Delivery: ["/admin/orders"],
-      Staff: ["/admin/products", "/admin/brands", "/admin/categories", "/admin/orders", "/admin/reviews", "/admin/warranties"],
-      Manager: ["/admin/products", "/admin/brands", "/admin/categories", "/admin/orders", "/admin/payments", "/admin/refunds", "/admin/staff", "/admin/customers", "/admin/vouchers", "/admin/reviews", "/admin/warranties", "/admin/locations", "/admin/audit-logs", "/admin/reports"],
+      Staff: ["/admin/products", "/admin/brands", "/admin/categories", "/admin/reviews", "/admin/warranties"],
+      Manager: ["/admin/products", "/admin/brands", "/admin/categories", "/admin/payments", "/admin/refunds", "/admin/staff", "/admin/customers", "/admin/vouchers", "/admin/reviews", "/admin/warranties", "/admin/locations", "/admin/audit-logs", "/admin/reports"],
     };
     const roleAllowedPaths = restrictedPrefixes[role];
     if (roleAllowedPaths && pathname !== "/admin" && !roleAllowedPaths.some((prefix) => pathname.startsWith(prefix))) {

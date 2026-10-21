@@ -73,7 +73,11 @@ export interface Order {
   paymentId?: number | null;
   trackingNumber: string;
   userId: number;
+  customerName?: string | null;
+  customerPhone?: string | null;
   address: string;
+  toLocationId?: number | null;
+  toLocation?: LocationDTO | null;
   subtotalPrice: number;
   shippingFee: number;
   discountAmount: number;
@@ -81,6 +85,21 @@ export interface Order {
   status: OrderStatus;
   createdAt: string;
   orderDetails: OrderDetail[];
+  deliveredByUserId?: number | null;
+  orderTrackingLogs?: OrderTrackingLog[];
+  medias?: { id?: number; mediaUrl: string; mediaType: MediaType }[];
+}
+
+export interface OrderTrackingLog {
+  id: number;
+  orderId: number;
+  locationId?: number | null;
+  description: string;
+  timestamp: string;
+  locationCode?: string | null;
+  locationName?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 // Product Image
