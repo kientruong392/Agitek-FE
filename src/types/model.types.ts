@@ -84,6 +84,18 @@ export const PaymentStatusLabels: Record<PaymentStatus, string> = {
   [PaymentStatus.Expired]: "Đã hết hạn",
 };
 
+export enum RefundStatus {
+  Pending = 0,
+  Approved = 1,
+  Rejected = 2,
+}
+
+export const RefundStatusLabels: Record<RefundStatus, string> = {
+  [RefundStatus.Pending]: "Chờ duyệt",
+  [RefundStatus.Approved]: "Đã duyệt",
+  [RefundStatus.Rejected]: "Từ chối",
+};
+
 export interface OrderDetail {
   orderId: number;
   productId: number;
@@ -95,6 +107,8 @@ export interface OrderDetail {
   totalPrice: number;
   hasReview: boolean;
   reviewId?: number | null;
+  hasRefund: boolean;
+  refundStatus?: RefundStatus | null;
 }
 
 export interface Payment {
@@ -137,6 +151,25 @@ export interface Order {
   deliveredByUserId?: number | null;
   orderTrackingLogs?: OrderTrackingLog[];
   medias?: { id?: number; mediaUrl: string; mediaType: MediaType }[];
+}
+
+export interface Refund {
+  orderId: number;
+  productId: number;
+  quantity: number;
+  userId: number;
+  approvedByUserId?: number | null;
+  amount: number;
+  reason: string;
+  response?: string | null;
+  status: RefundStatus;
+  createdAt: string;
+  updatedAt: string;
+  orderDetail?: OrderDetail | null;
+  order?: Order | null;
+  user?: UserDTO | null;
+  approvedByUser?: UserDTO | null;
+  medias: ReviewMedia[];
 }
 
 export interface OrderTrackingLog {

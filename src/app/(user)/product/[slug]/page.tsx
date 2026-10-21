@@ -18,7 +18,7 @@ export default async function ProductPage({
   const reviewResult = await getProductReviews(product.id);
   const reviews = reviewResult.success && Array.isArray(reviewResult.data) ? reviewResult.data : [];
   const requestedReviewId = typeof reviewid === "string" ? Number(reviewid) : undefined;
-  const highlightedReviewId = Number.isSafeInteger(requestedReviewId) && requestedReviewId > 0
+  const highlightedReviewId = requestedReviewId !== undefined && Number.isSafeInteger(requestedReviewId) && requestedReviewId > 0
     ? requestedReviewId
     : undefined;
 

@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import RefundDialog from "./refund-dialog";
 import ReviewDialog from "./review-dialog";
 import type { Order } from "@/types/model.types";
-import { OrderStatus, OrderStatusLabels } from "@/types/model.types";
+import { OrderStatus, OrderStatusLabels, RefundStatus, RefundStatusLabels } from "@/types/model.types";
 
 const FALLBACK_IMAGE = "/images/no-image.png";
 const ALL_STATUSES = "all";
@@ -54,11 +55,15 @@ function statusVariant(status: OrderStatus) {
 function OrderCard({
   order,
   reviewedItems,
+  refundedItems,
   onReviewed,
+  onRefunded,
 }: {
   order: Order;
   reviewedItems: Map<string, number>;
+  refundedItems: Map<string, RefundStatus>;
   onReviewed: (productId: number, reviewId: number) => void;
+  onRefunded: (productId: number, status: RefundStatus) => void;
 }) {
   return (
     <Card className="border-border/70">
@@ -78,6 +83,8 @@ function OrderCard({
           const itemKey = `${order.id}-${item.productId}`;
           const reviewId = item.reviewId ?? reviewedItems.get(itemKey);
           const hasReview = item.hasReview || reviewId != null;
+          const refundStatus = item.refundStatus ?? refundedItems.get(itemKey);
+          const hasRefund = item.hasRefund || refundStatus != null;
 
           return (
             <div key={`${item.orderId}-${item.productId}`} className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
@@ -101,10 +108,12 @@ function OrderCard({
                 <span className="font-semibold">{formatPrice(item.totalPrice)}</span>
                 {isDelivered && (
                   <div className="flex flex-wrap justify-end gap-2">
-                    <Button type="button" variant="outline" size="sm" disabled>
-                      <RotateCcw className="size-4" />
-                      Trả hàng/hoàn tiền
-                    </Button>
+                    {hasRefund ? (
+                      <Button type="button" variant="outline" size="sm" disabled>
+                        <RotateCcw className="size-4" />
+                        {refundStatus == null ? "Đã gửi yêu cầu" : `Hoàn tiền: ${RefundStatusLabels[refundStatus]}`}
+                      </Button>
+                    ) : <RefundDialog order={order} item={item} onSubmitted={(status) => onRefunded(item.productId, status)} />}
                     {hasReview ? (
                       <Button
                         nativeButton={false}
@@ -143,6 +152,7 @@ function OrderCard({
 export default function OrderHistory({ orders }: { orders: Order[] }) {
   const [activeStatus, setActiveStatus] = useState(ALL_STATUSES);
   const [reviewedItems, setReviewedItems] = useState<Map<string, number>>(() => new Map());
+  const [refundedItems, setRefundedItems] = useState<Map<string, RefundStatus>>(() => new Map());
   const filteredOrders = useMemo(
     () => activeStatus === ALL_STATUSES ? orders : orders.filter((order) => String(order.status) === activeStatus),
     [activeStatus, orders],
@@ -190,9 +200,15 @@ export default function OrderHistory({ orders }: { orders: Order[] }) {
               key={order.id}
               order={order}
               reviewedItems={reviewedItems}
+              refundedItems={refundedItems}
               onReviewed={(productId, reviewId) => setReviewedItems((current) => {
                 const next = new Map(current);
                 next.set(`${order.id}-${productId}`, reviewId);
+                return next;
+              })}
+              onRefunded={(productId, status) => setRefundedItems((current) => {
+                const next = new Map(current);
+                next.set(`${order.id}-${productId}`, status);
                 return next;
               })}
             />

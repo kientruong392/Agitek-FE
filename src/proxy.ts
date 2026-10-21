@@ -31,6 +31,11 @@ export default auth((req) => {
       return NextResponse.redirect(new URL("/admin", req.url));
     }
 
+    const isRefundManagementPath = pathname === "/admin/refunds" || pathname.startsWith("/admin/refunds/");
+    if (isRefundManagementPath && !["SuperAdmin", "Admin", "Manager"].includes(role)) {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
+
     const restrictedPrefixes: Record<string, string[]> = {
       Delivery: ["/admin/orders"],
       Staff: ["/admin/products", "/admin/brands", "/admin/categories", "/admin/reviews", "/admin/warranties"],

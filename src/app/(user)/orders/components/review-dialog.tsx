@@ -158,7 +158,7 @@ export default function ReviewDialog({ order, item, onSubmitted }: ReviewDialogP
         comment: comment.trim() || undefined,
         medias: uploadedMedias,
       });
-      if (!response.success) {
+      if (!response.success || !response.data) {
         toast.add({ title: response.message || "Không thể gửi đánh giá.", type: "error" });
         return;
       }
