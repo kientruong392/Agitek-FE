@@ -14,7 +14,7 @@ import {
 import { getAllWarehouses } from "@/actions/location.action";
 import dynamic from "next/dynamic";
 import { addOrderTrackingPoint, confirmOrder, getDeliveryUsers, getOrderTracking, shipOrder, startOrderTransit } from "@/actions/order.action";
-import { uploadImageToCloudinary } from "@/actions/cloudinary.action";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

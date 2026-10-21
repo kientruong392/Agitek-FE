@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ClipboardList, PackageCheck, Star } from "lucide-react";
+import { ClipboardList, PackageCheck, RotateCcw, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import ReviewDialog from "./review-dialog";
 import type { Order } from "@/types/model.types";
 import { OrderStatus, OrderStatusLabels } from "@/types/model.types";
 
@@ -50,7 +51,15 @@ function statusVariant(status: OrderStatus) {
   }
 }
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({
+  order,
+  reviewedItems,
+  onReviewed,
+}: {
+  order: Order;
+  reviewedItems: Map<string, number>;
+  onReviewed: (productId: number, reviewId: number) => void;
+}) {
   return (
     <Card className="border-border/70">
       <CardHeader className="gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -64,33 +73,58 @@ function OrderCard({ order }: { order: Order }) {
       </CardHeader>
 
       <CardContent className="divide-y px-4 sm:px-6">
-        {order.orderDetails.map((item) => (
-          <div key={`${item.orderId}-${item.productId}`} className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
-            <Link href={`/product/${item.productSlug}`} className="flex min-w-0 flex-1 items-center gap-4">
-              <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border bg-muted sm:size-24">
-                <Image
-                  src={item.productImageUrl || FALLBACK_IMAGE}
-                  alt={item.productName}
-                  fill
-                  className="object-contain p-2"
-                  unoptimized
-                />
+        {order.orderDetails.map((item) => {
+          const isDelivered = order.status === OrderStatus.Delivered;
+          const itemKey = `${order.id}-${item.productId}`;
+          const reviewId = item.reviewId ?? reviewedItems.get(itemKey);
+          const hasReview = item.hasReview || reviewId != null;
+
+          return (
+            <div key={`${item.orderId}-${item.productId}`} className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
+              <Link href={`/product/${item.productSlug}`} className="flex min-w-0 flex-1 items-center gap-4">
+                <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border bg-muted sm:size-24">
+                  <Image
+                    src={item.productImageUrl || FALLBACK_IMAGE}
+                    alt={item.productName}
+                    fill
+                    className="object-contain p-2"
+                    unoptimized
+                  />
+                </div>
+                <div className="min-w-0 space-y-1">
+                  <p className="line-clamp-2 font-medium text-foreground">{item.productName || `Sản phẩm #${item.productId}`}</p>
+                  <p className="text-sm text-muted-foreground">Số lượng: {item.quantity}</p>
+                  <p className="text-sm text-muted-foreground">Đơn giá: {formatPrice(item.unitPrice)}</p>
+                </div>
+              </Link>
+              <div className="flex items-center justify-between gap-3 border-t pt-3 sm:w-56 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
+                <span className="font-semibold">{formatPrice(item.totalPrice)}</span>
+                {isDelivered && (
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button type="button" variant="outline" size="sm" disabled>
+                      <RotateCcw className="size-4" />
+                      Trả hàng/hoàn tiền
+                    </Button>
+                    {hasReview ? (
+                      <Button
+                        nativeButton={false}
+                        render={<Link href={reviewId != null ? `/product/${item.productSlug}?reviewid=${reviewId}` : `/product/${item.productSlug}#reviews`} />}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Star className="size-4 fill-yellow-400 text-yellow-400" />
+                        Xem đánh giá
+                      </Button>
+                    ) : (
+                      <ReviewDialog order={order} item={item} onSubmitted={(newReviewId) => onReviewed(item.productId, newReviewId)} />
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="min-w-0 space-y-1">
-                <p className="line-clamp-2 font-medium text-foreground">{item.productName || `Sản phẩm #${item.productId}`}</p>
-                <p className="text-sm text-muted-foreground">Số lượng: {item.quantity}</p>
-                <p className="text-sm text-muted-foreground">Đơn giá: {formatPrice(item.unitPrice)}</p>
-              </div>
-            </Link>
-            <div className="flex items-center justify-between gap-3 border-t pt-3 sm:w-44 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
-              <span className="font-semibold">{formatPrice(item.totalPrice)}</span>
-              <Button type="button" variant="outline" size="sm" aria-label={`${item.hasReview ? "Xem đánh giá" : "Đánh giá"} ${item.productName}`}>
-                <Star className={`size-4 ${item.hasReview ? "fill-yellow-400 text-yellow-400" : ""}`} />
-                {item.hasReview ? "Xem đánh giá" : "Đánh giá"}
-              </Button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
 
       <CardFooter className="flex flex-wrap justify-between gap-3 border-t bg-muted/20 py-4">
@@ -108,6 +142,7 @@ function OrderCard({ order }: { order: Order }) {
 
 export default function OrderHistory({ orders }: { orders: Order[] }) {
   const [activeStatus, setActiveStatus] = useState(ALL_STATUSES);
+  const [reviewedItems, setReviewedItems] = useState<Map<string, number>>(() => new Map());
   const filteredOrders = useMemo(
     () => activeStatus === ALL_STATUSES ? orders : orders.filter((order) => String(order.status) === activeStatus),
     [activeStatus, orders],
@@ -150,7 +185,18 @@ export default function OrderHistory({ orders }: { orders: Order[] }) {
 
       <div className="space-y-4">
         {filteredOrders.length ? (
-          filteredOrders.map((order) => <OrderCard key={order.id} order={order} />)
+          filteredOrders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              reviewedItems={reviewedItems}
+              onReviewed={(productId, reviewId) => setReviewedItems((current) => {
+                const next = new Map(current);
+                next.set(`${order.id}-${productId}`, reviewId);
+                return next;
+              })}
+            />
+          ))
         ) : (
           <Card className="border-dashed shadow-none ring-0">
             <CardContent className="flex flex-col items-center px-6 py-12 text-center">

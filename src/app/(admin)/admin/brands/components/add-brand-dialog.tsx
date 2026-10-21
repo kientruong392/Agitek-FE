@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { createBrand } from "@/actions/brand.action";
-import { uploadImageToCloudinary } from "@/actions/cloudinary.action";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { brandSchema, type BrandInput } from "@/schemas/brand.schema";
 import { getErrorMsg } from "@/utils/helper.utils";
 

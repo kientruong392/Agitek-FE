@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/components/ui/toast";
 import { useCart } from "@/components/providers/CartProvider";
 import { ChevronLeft, ChevronRight, ShoppingCart, Star } from "lucide-react";
@@ -74,12 +74,23 @@ function ReviewMediaItem({ media, index, t }: { media: ReviewMedia; index: numbe
   );
 }
 
-function ReviewItem({ review, t }: { review: ProductReview; t: (key: string, values?: Record<string, string | number>) => string }) {
+function ReviewItem({
+  review,
+  t,
+  isHighlighted,
+}: {
+  review: ProductReview;
+  t: (key: string, values?: Record<string, string | number>) => string;
+  isHighlighted: boolean;
+}) {
   const fullName = review.user?.profile?.fullName || t("anonymousReviewer");
   const initials = fullName.trim().split(/\s+/).slice(-2).map((part) => part[0]).join("").toUpperCase() || "?";
 
   return (
-    <article className="border-b py-5 last:border-b-0">
+    <article
+      id={`review-${review.id}`}
+      className={`scroll-mt-24 border-b py-5 last:border-b-0 ${isHighlighted ? "rounded-2xl border border-primary/30 bg-primary/5 px-4" : ""}`}
+    >
       <div className="flex items-start gap-3">
         <Avatar size="lg">
           <AvatarImage src={review.user?.profile?.avatarUrl || undefined} alt={fullName} />
@@ -105,7 +116,15 @@ function ReviewItem({ review, t }: { review: ProductReview; t: (key: string, val
   );
 }
 
-export default function ProductDetail({ product, reviews }: { product: Product; reviews: ProductReview[] }) {
+export default function ProductDetail({
+  product,
+  reviews,
+  highlightedReviewId,
+}: {
+  product: Product;
+  reviews: ProductReview[];
+  highlightedReviewId?: number;
+}) {
   const t = useTranslations("ProductDetail");
   const cartT = useTranslations("Cart");
   const { addItem } = useCart();
@@ -115,6 +134,7 @@ export default function ProductDetail({ product, reviews }: { product: Product; 
   const [activeTab, setActiveTab] = useState("specifications");
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
   const [filterPages, setFilterPages] = useState<Record<string, number>>({ all: 0 });
+  const scrolledReviewId = useRef<number | null>(null);
   const images = useMemo(() => [...(product.images ?? [])].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.sortOrder - b.sortOrder), [product.images]);
   const selectedImage = images[activeImage];
   const hasDiscount = product.discountPrice != null && product.discountPrice < product.originalPrice;
@@ -138,7 +158,16 @@ export default function ProductDetail({ product, reviews }: { product: Product; 
     [ProductStatus.PreOrder]: t("preOrder"),
     [ProductStatus.Deleted]: t("deleted"),
   };
-  const visibleReviews = useMemo(() => reviews.filter((review) => review.rating >= 1 && review.rating <= 5), [reviews]);
+  const visibleReviews = useMemo(() => {
+    const validReviews = reviews.filter((review) => review.rating >= 1 && review.rating <= 5);
+    if (highlightedReviewId == null) return validReviews;
+
+    return [...validReviews].sort((first, second) => {
+      if (first.id === highlightedReviewId) return -1;
+      if (second.id === highlightedReviewId) return 1;
+      return 0;
+    });
+  }, [highlightedReviewId, reviews]);
   const ratingCounts = useMemo(() => [5, 4, 3, 2, 1].map((rating) => ({ rating, count: visibleReviews.filter((review) => review.rating === rating).length })), [visibleReviews]);
   const averageRating = visibleReviews.length
     ? visibleReviews.reduce((sum, review) => sum + review.rating, 0) / visibleReviews.length
@@ -148,6 +177,16 @@ export default function ProductDetail({ product, reviews }: { product: Product; 
   const currentReviewPage = Math.min(filterPages[reviewFilter] ?? 0, Math.max(pageCount - 1, 0));
   const pageLinks = Array.from({ length: pageCount }, (_, index) => index);
   const pageReviews = filteredReviews.slice(currentReviewPage * REVIEW_PAGE_SIZE, (currentReviewPage + 1) * REVIEW_PAGE_SIZE);
+  useEffect(() => {
+    if (highlightedReviewId == null || scrolledReviewId.current === highlightedReviewId || !pageReviews.some((review) => review.id === highlightedReviewId)) return;
+
+    const timer = window.setTimeout(() => {
+      document.getElementById(`review-${highlightedReviewId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      scrolledReviewId.current = highlightedReviewId;
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [highlightedReviewId, pageReviews]);
   const changeReviewPage = (page: number) => {
     setFilterPages((pages) => ({ ...pages, [reviewFilter]: page }));
   };
@@ -301,7 +340,9 @@ export default function ProductDetail({ product, reviews }: { product: Product; 
                   </Button>
                 ))}
               </div>
-              {pageReviews.length ? pageReviews.map((review) => <ReviewItem key={review.id} review={review} t={t} />) : <p className="py-10 text-center text-sm text-muted-foreground">{t("noReviews")}</p>}
+              {pageReviews.length ? pageReviews.map((review) => (
+                <ReviewItem key={review.id} review={review} t={t} isHighlighted={review.id === highlightedReviewId} />
+              )) : <p className="py-10 text-center text-sm text-muted-foreground">{t("noReviews")}</p>}
               {pageCount > 1 && <Pagination className="mt-4">
                 <PaginationContent>
                   <PaginationItem><PaginationPrevious href="#" text={t("previous")} aria-label={t("previousReviewsPage")} aria-disabled={currentReviewPage === 0} onClick={(event) => { event.preventDefault(); if (currentReviewPage > 0) changeReviewPage(currentReviewPage - 1); }} /></PaginationItem>

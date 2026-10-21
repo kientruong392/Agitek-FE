@@ -56,6 +56,34 @@ export const OrderStatusLabels: Record<OrderStatus, string> = {
   [OrderStatus.Paid]: "Đã thanh toán",
 };
 
+export enum PaymentMethod {
+  COD = 0,
+  Bank = 1,
+  Momo = 2,
+}
+
+export const PaymentMethodLabels: Record<PaymentMethod, string> = {
+  [PaymentMethod.COD]: "Thanh toán khi nhận hàng",
+  [PaymentMethod.Bank]: "Chuyển khoản ngân hàng",
+  [PaymentMethod.Momo]: "MoMo",
+};
+
+export enum PaymentStatus {
+  Pending = 0,
+  Success = 1,
+  Failed = 2,
+  Refunded = 3,
+  Expired = 4,
+}
+
+export const PaymentStatusLabels: Record<PaymentStatus, string> = {
+  [PaymentStatus.Pending]: "Chờ thanh toán",
+  [PaymentStatus.Success]: "Thành công",
+  [PaymentStatus.Failed]: "Thất bại",
+  [PaymentStatus.Refunded]: "Đã hoàn tiền",
+  [PaymentStatus.Expired]: "Đã hết hạn",
+};
+
 export interface OrderDetail {
   orderId: number;
   productId: number;
@@ -66,6 +94,27 @@ export interface OrderDetail {
   unitPrice: number;
   totalPrice: number;
   hasReview: boolean;
+  reviewId?: number | null;
+}
+
+export interface Payment {
+  id: number;
+  orderId: number;
+  orderUserId: number;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  status: PaymentStatus;
+  createdAt: string;
+  transactionId?: string | null;
+  gatewayResponse?: string | null;
+  expiresAt?: string | null;
+  paidAt?: string | null;
+  order?: Order | null;
+  qrCodeUrl?: string | null;
+  bankId?: string | null;
+  accountNumber?: string | null;
+  accountName?: string | null;
+  transferDescription?: string | null;
 }
 
 export interface Order {

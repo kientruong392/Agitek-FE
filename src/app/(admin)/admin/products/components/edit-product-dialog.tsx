@@ -15,7 +15,7 @@ import { toast } from "@/components/ui/toast";
 import { updateProduct } from "@/actions/product.action";
 import { getAllBrands } from "@/actions/brand.action";
 import { getAllCategories } from "@/actions/category.action";
-import { uploadImageToCloudinary } from "@/actions/cloudinary.action";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { productSchema, type ProductInput } from "@/schemas/product.schema";
 import { getErrorMsg } from "@/utils/helper.utils";
 import type { Product, ProductImage } from "@/types/model.types";

@@ -6,7 +6,7 @@ import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import { CalendarDays, Camera, Check, KeyRound, MapPin, Plus, Save, ShieldCheck, Trash2, UserRound } from "lucide-react";
 import { changeMyPassword, createAddress, deleteAddress, updateAddress, updateMyAccount, updateMyProfile } from "@/actions/profile.action";
-import { uploadImageToCloudinary } from "@/actions/cloudinary.action";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
