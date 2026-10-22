@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, Globe, LogOutIcon, SettingsIcon, UserIcon } from "lucide-react";
+import { ClipboardList, Globe, LogOutIcon, SettingsIcon, ShieldCheck, UserIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -75,6 +75,7 @@ export default function RightSection({ isLogin }: { isLogin: boolean }) {
             <DropdownMenuGroup>
               <DropdownMenuItem nativeButton={false} render={<Link href="/profile/" />}><UserIcon />Account</DropdownMenuItem>
               <DropdownMenuItem nativeButton={false} render={<Link href="/orders/" />}><ClipboardList />Đơn hàng của tôi</DropdownMenuItem>
+              <DropdownMenuItem nativeButton={false} render={<Link href="/warranties/" />}><ShieldCheck />{t("warranties")}</DropdownMenuItem>
               <DropdownMenuItem><SettingsIcon />Settings</DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuItem variant="destructive" onClick={handleAuth}><LogOutIcon />{t("logout")}</DropdownMenuItem>

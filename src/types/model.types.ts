@@ -96,12 +96,27 @@ export const RefundStatusLabels: Record<RefundStatus, string> = {
   [RefundStatus.Rejected]: "Từ chối",
 };
 
+export enum WarrantyStatus {
+  Pending = 0,
+  Processing = 1,
+  Completed = 2,
+  Rejected = 3,
+}
+
+export const WarrantyStatusLabels: Record<WarrantyStatus, string> = {
+  [WarrantyStatus.Pending]: "Chờ duyệt",
+  [WarrantyStatus.Processing]: "Đang bảo hành",
+  [WarrantyStatus.Completed]: "Hoàn tất",
+  [WarrantyStatus.Rejected]: "Từ chối",
+};
+
 export interface OrderDetail {
   orderId: number;
   productId: number;
   productName: string;
   productSlug: string;
   productImageUrl?: string | null;
+  warrantyPeriod: number;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -147,6 +162,7 @@ export interface Order {
   totalPrice: number;
   status: OrderStatus;
   createdAt: string;
+  updatedAt: string;
   orderDetails: OrderDetail[];
   deliveredByUserId?: number | null;
   orderTrackingLogs?: OrderTrackingLog[];
@@ -169,6 +185,29 @@ export interface Refund {
   order?: Order | null;
   user?: UserDTO | null;
   approvedByUser?: UserDTO | null;
+  medias: ReviewMedia[];
+}
+
+export interface Warranty {
+  id: number;
+  code: string;
+  orderId: number;
+  productId: number;
+  quantity: number;
+  userId: number;
+  fullName: string;
+  phoneNumber: string;
+  address: string;
+  productCondition: string;
+  status: WarrantyStatus;
+  response?: string | null;
+  startDate?: string | null;
+  completedDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  orderDetail?: OrderDetail | null;
+  order?: Order | null;
+  user?: UserDTO | null;
   medias: ReviewMedia[];
 }
 
