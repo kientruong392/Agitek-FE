@@ -12,12 +12,36 @@ export interface CreateReviewInput {
   medias: { mediaUrl: string }[];
 }
 
+export interface ReplyReviewInput {
+  replyComment: string;
+}
+
 export async function createReview(
   input: CreateReviewInput
 ): Promise<ApiResponse<ProductReview>> {
   try {
     const axiosInstance = await createServerAxios();
     const response = await axiosInstance.post("/Review", input);
+    return response.data;
+  } catch (error) {
+    return getDefaultError(error) as ApiResponse<ProductReview>;
+  }
+}
+
+export async function getManagementReviews(): Promise<ApiResponse<ProductReview[]>> {
+  try {
+    const axiosInstance = await createServerAxios();
+    const response = await axiosInstance.get("/Review");
+    return response.data;
+  } catch (error) {
+    return getDefaultError(error) as ApiResponse<ProductReview[]>;
+  }
+}
+
+export async function replyReview(id: number, input: ReplyReviewInput): Promise<ApiResponse<ProductReview>> {
+  try {
+    const axiosInstance = await createServerAxios();
+    const response = await axiosInstance.patch(`/Review/${id}/reply`, input);
     return response.data;
   } catch (error) {
     return getDefaultError(error) as ApiResponse<ProductReview>;

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import { getProductBySlug, getProductReviews } from "@/actions/product.action";
 import ProductDetail from "./components/ProductDetail";
 
@@ -9,7 +10,7 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ reviewid?: string | string[] }>;
 }) {
-  const [{ slug }, { reviewid }] = await Promise.all([params, searchParams]);
+  const [{ slug }, { reviewid }, session] = await Promise.all([params, searchParams, auth()]);
   const productResult = await getProductBySlug(slug);
   const product = productResult.data;
 
@@ -22,5 +23,7 @@ export default async function ProductPage({
     ? requestedReviewId
     : undefined;
 
-  return <ProductDetail product={product} reviews={reviews} highlightedReviewId={highlightedReviewId} />;
+  const canReply = ["Staff", "Manager", "Admin", "SuperAdmin"].includes(session?.user?.role ?? "");
+
+  return <ProductDetail product={product} reviews={reviews} highlightedReviewId={highlightedReviewId} canReply={canReply} />;
 }

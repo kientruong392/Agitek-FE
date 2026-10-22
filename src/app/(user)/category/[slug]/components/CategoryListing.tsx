@@ -131,26 +131,28 @@ function ProductListItem({ product }: { product: Product }) {
     : product.originalPrice;
 
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border bg-card p-3 sm:flex-row sm:items-center">
-      <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-muted">
-        <Image src={image?.imageUrl || "/images/no-image.png"} alt={image?.altText ?? product.productName} fill className="object-contain p-2" unoptimized />
-      </div>
-      <div className="min-w-0 flex-1">
-        <h2 className="line-clamp-2 font-medium">{product.productName}</h2>
-        {product.averageRating != null && (
-          <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="size-3.5 fill-amber-400 text-amber-400" /> {product.averageRating.toFixed(1)}
-          </p>
-        )}
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <Badge variant={statusVariant(effectiveStatus)}>{statusLabel}</Badge>
-          <span className="text-xs text-muted-foreground">{t("stockCount", { count: product.stockQuantity })}</span>
+    <Link href={`/product/${product.slug}`} aria-label={t("viewProduct", { product: product.productName })} className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+      <article className="flex flex-col gap-3 rounded-2xl border bg-card p-3 sm:flex-row sm:items-center">
+        <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-muted">
+          <Image src={image?.imageUrl || "/images/no-image.png"} alt={image?.altText ?? product.productName} fill className="object-contain p-2" unoptimized />
         </div>
-      </div>
-      <div className="flex items-center justify-between gap-3 sm:justify-end">
-        <strong className="text-primary">{formatPrice(price)}</strong>
-      </div>
-    </article>
+        <div className="min-w-0 flex-1">
+          <h2 className="line-clamp-2 font-medium">{product.productName}</h2>
+          {product.averageRating != null && (
+            <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+              <Star className="size-3.5 fill-amber-400 text-amber-400" /> {product.averageRating.toFixed(1)}
+            </p>
+          )}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Badge variant={statusVariant(effectiveStatus)}>{statusLabel}</Badge>
+            <span className="text-xs text-muted-foreground">{t("stockCount", { count: product.stockQuantity })}</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-3 sm:justify-end">
+          <strong className="text-primary">{formatPrice(price)}</strong>
+        </div>
+      </article>
+    </Link>
   );
 }
 

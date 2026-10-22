@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/components/ui/toast";
 import { useCart } from "@/components/providers/CartProvider";
-import { ChevronLeft, ChevronRight, ShoppingCart, Star } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, MessageSquareReply, ShoppingCart, Star } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { replyReview } from "@/actions/review.action";
 import type { Product, ProductReview, ReviewMedia } from "@/types/model.types";
 import { MediaType, ProductStatus } from "@/types/model.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +18,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Tabs } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 const FALLBACK_IMAGE = "/images/no-image.png";
 const REVIEW_PAGE_SIZE = 5;
@@ -78,13 +80,49 @@ function ReviewItem({
   review,
   t,
   isHighlighted,
+  canReply,
+  onReplied,
 }: {
   review: ProductReview;
   t: (key: string, values?: Record<string, string | number>) => string;
   isHighlighted: boolean;
+  canReply: boolean;
+  onReplied: (review: ProductReview) => void;
 }) {
+  const locale = useLocale();
   const fullName = review.user?.profile?.fullName || t("anonymousReviewer");
   const initials = fullName.trim().split(/\s+/).slice(-2).map((part) => part[0]).join("").toUpperCase() || "?";
+  const replyName = review.replyUser?.profile?.fullName || t("staffFallback");
+  const replyInitials = replyName.trim().split(/\s+/).slice(-2).map((part) => part[0]).join("").toUpperCase() || "?";
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyVisible, setReplyVisible] = useState(false);
+  const [replyComment, setReplyComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleReply(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalizedReply = replyComment.trim();
+    if (!normalizedReply) {
+      toast.add({ title: t("replyRequired"), type: "error" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await replyReview(review.id, { replyComment: normalizedReply });
+      if (!response.success || !response.data) {
+        toast.add({ title: response.message || t("replyFailed"), type: "error" });
+        return;
+      }
+      toast.add({ title: t("replySuccess"), type: "success" });
+      onReplied(response.data);
+      setReplyComment("");
+      setReplyOpen(false);
+      setReplyVisible(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <article
@@ -100,7 +138,7 @@ function ReviewItem({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-semibold">{fullName}</h3>
             <time className="text-xs text-muted-foreground" dateTime={review.createdAt}>
-              {new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(review.createdAt))}
+              {new Intl.DateTimeFormat(locale === "en" ? "en-US" : "vi-VN", { dateStyle: "medium" }).format(new Date(review.createdAt))}
             </time>
           </div>
           <div className="mt-1"><ReviewStars rating={review.rating} label={t("reviewRating", { rating: review.rating })} /></div>
@@ -110,6 +148,12 @@ function ReviewItem({
               {review.medias.map((media, index) => <ReviewMediaItem key={media.id} media={media} index={index} t={t} />)}
             </div>
           )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {canReply && !review.replyComment && <Button type="button" size="sm" variant="outline" onClick={() => setReplyOpen((current) => !current)}><MessageSquareReply className="size-3.5" />{t("reply")}</Button>}
+            {review.replyComment && <Button type="button" size="sm" variant="ghost" onClick={() => setReplyVisible((current) => !current)}>{replyVisible ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}{replyVisible ? t("hideReply") : t("viewReply")}</Button>}
+          </div>
+          {replyOpen && canReply && !review.replyComment && <form onSubmit={handleReply} className="mt-4 space-y-3 rounded-xl border bg-muted/20 p-4"><label htmlFor={`review-reply-${review.id}`} className="text-sm font-medium">{t("reply")}</label><Textarea id={`review-reply-${review.id}`} value={replyComment} onChange={(event) => setReplyComment(event.target.value)} maxLength={1000} placeholder={t("replyPlaceholder")} className="min-h-24" disabled={isSubmitting} /><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-muted-foreground">{replyComment.length}/1000</p><div className="flex gap-2"><Button type="button" size="sm" variant="ghost" disabled={isSubmitting} onClick={() => setReplyOpen(false)}>{t("cancelReply")}</Button><Button type="submit" size="sm" disabled={isSubmitting}>{isSubmitting && <span className="size-3 animate-spin rounded-full border-2 border-current border-r-transparent" />}{t("sendReply")}</Button></div></div></form>}
+          {replyVisible && review.replyComment && <section className="mt-4 rounded-xl border bg-muted/20 p-4"><div className="flex items-start gap-3"><Avatar><AvatarImage src={review.replyUser?.profile?.avatarUrl || undefined} alt={replyName} /><AvatarFallback>{replyInitials}</AvatarFallback></Avatar><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center justify-between gap-2"><h4 className="font-semibold">{replyName}</h4>{review.replyCreatedAt && <time className="text-xs text-muted-foreground" dateTime={review.replyCreatedAt}>{new Intl.DateTimeFormat(locale === "en" ? "en-US" : "vi-VN", { dateStyle: "medium" }).format(new Date(review.replyCreatedAt))}</time>}</div><p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{review.replyComment}</p></div></div></section>}
         </div>
       </div>
     </article>
@@ -120,10 +164,12 @@ export default function ProductDetail({
   product,
   reviews,
   highlightedReviewId,
+  canReply,
 }: {
   product: Product;
   reviews: ProductReview[];
   highlightedReviewId?: number;
+  canReply: boolean;
 }) {
   const t = useTranslations("ProductDetail");
   const cartT = useTranslations("Cart");
@@ -134,6 +180,7 @@ export default function ProductDetail({
   const [activeTab, setActiveTab] = useState("specifications");
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
   const [filterPages, setFilterPages] = useState<Record<string, number>>({ all: 0 });
+  const [reviewItems, setReviewItems] = useState(reviews);
   const scrolledReviewId = useRef<number | null>(null);
   const images = useMemo(() => [...(product.images ?? [])].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.sortOrder - b.sortOrder), [product.images]);
   const selectedImage = images[activeImage];
@@ -159,7 +206,7 @@ export default function ProductDetail({
     [ProductStatus.Deleted]: t("deleted"),
   };
   const visibleReviews = useMemo(() => {
-    const validReviews = reviews.filter((review) => review.rating >= 1 && review.rating <= 5);
+    const validReviews = reviewItems.filter((review) => review.rating >= 1 && review.rating <= 5);
     if (highlightedReviewId == null) return validReviews;
 
     return [...validReviews].sort((first, second) => {
@@ -167,7 +214,7 @@ export default function ProductDetail({
       if (second.id === highlightedReviewId) return 1;
       return 0;
     });
-  }, [highlightedReviewId, reviews]);
+  }, [highlightedReviewId, reviewItems]);
   const ratingCounts = useMemo(() => [5, 4, 3, 2, 1].map((rating) => ({ rating, count: visibleReviews.filter((review) => review.rating === rating).length })), [visibleReviews]);
   const averageRating = visibleReviews.length
     ? visibleReviews.reduce((sum, review) => sum + review.rating, 0) / visibleReviews.length
@@ -341,7 +388,7 @@ export default function ProductDetail({
                 ))}
               </div>
               {pageReviews.length ? pageReviews.map((review) => (
-                <ReviewItem key={review.id} review={review} t={t} isHighlighted={review.id === highlightedReviewId} />
+                <ReviewItem key={review.id} review={review} t={t} isHighlighted={review.id === highlightedReviewId} canReply={canReply} onReplied={(updatedReview) => setReviewItems((current) => current.map((item) => item.id === updatedReview.id ? updatedReview : item))} />
               )) : <p className="py-10 text-center text-sm text-muted-foreground">{t("noReviews")}</p>}
               {pageCount > 1 && <Pagination className="mt-4">
                 <PaginationContent>

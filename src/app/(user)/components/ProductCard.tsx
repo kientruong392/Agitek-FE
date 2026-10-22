@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ShoppingCart, Star } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
@@ -75,7 +76,14 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="h-full">
-      <Card className="flex h-full flex-col overflow-hidden border-border/70">
+      <Card className="relative flex h-full flex-col overflow-hidden border-border/70">
+        <Link
+          href={`/product/${product.slug}`}
+          aria-label={t("viewProduct", { product: product.productName })}
+          className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <span className="sr-only">{t("viewProduct", { product: product.productName })}</span>
+        </Link>
         <div className="relative aspect-square shrink-0 bg-muted">
           <Image src={imageUrl(product)} alt={product.productName} fill className="object-contain p-4" unoptimized />
         </div>
@@ -99,7 +107,7 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         </CardContent>
         <CardFooter className="px-3 pb-3 pt-1">
-          <Button className="w-full" disabled={unavailable || adding} variant={unavailable ? "outline" : "default"} onClick={() => void handleAddToCart()}>
+          <Button className="relative z-20 w-full" disabled={unavailable || adding} variant={unavailable ? "outline" : "default"} onClick={() => void handleAddToCart()}>
             <ShoppingCart />
             {isOutOfStock && !isPreOrder ? t("outOfStock") : adding ? cartT("adding") : t("addtoCart")}
           </Button>

@@ -254,10 +254,20 @@ export interface ReviewMedia {
 
 export interface ReviewUser {
   id: number;
+  username?: string | null;
+  email?: string | null;
   profile: {
     fullName: string;
     avatarUrl?: string | null;
   };
+}
+
+export interface ReviewProduct {
+  id: number;
+  sku: string;
+  productName: string;
+  slug: string;
+  images: ProductImage[];
 }
 
 export interface ProductReview {
@@ -269,10 +279,12 @@ export interface ProductReview {
   rating: number;
   comment?: string | null;
   replyUserId?: number | null;
+  replyUser?: ReviewUser | null;
   replyComment?: string | null;
   replyCreatedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  product?: ReviewProduct | null;
   medias: ReviewMedia[];
 }
 
