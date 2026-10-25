@@ -13,6 +13,11 @@
   "Header": {
     "search": "Search products...",
     "searchPlaceholder": "PC gaming, RTX graphics card...",
+    "searchResults": "Related products",
+    "searching": "Searching products...",
+    "noSearchResults": "No matching products found.",
+    "searchError": "Could not search for products. Please try again.",
+    "clearSearch": "Clear search",
     "categories": "Categories",
     "login": "Login",
     "logout": "Logout",
@@ -20,6 +25,19 @@
     "language": "Language",
     "cart": "Shopping cart",
     "warranties": "Warranty"
+  },
+  "Search": {
+    "home": "Home",
+    "title": "Search results",
+    "query": "Results for “{query}”",
+    "resultsCount": "{count, plural, one {# related product} other {# related products}}",
+    "enterQuery": "Enter at least 2 characters in the search bar to find products.",
+    "emptyTitle": "No matching products found",
+    "emptyDescription": "Try different keywords or describe the product you need in more detail.",
+    "errorTitle": "Could not load search results",
+    "errorDescription": "Please try searching again later.",
+    "backHome": "Back to home",
+    "loading": "Searching for products..."
   },
   "Cart": {
     "title": "Shopping cart",

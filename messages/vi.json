@@ -13,6 +13,11 @@
   "Header": {
     "search": "Tìm kiếm sản phẩm...",
     "searchPlaceholder": "PC gaming chơi LOL, card RTX...",
+    "searchResults": "Sản phẩm liên quan",
+    "searching": "Đang tìm sản phẩm...",
+    "noSearchResults": "Không tìm thấy sản phẩm phù hợp.",
+    "searchError": "Không thể tìm kiếm sản phẩm. Vui lòng thử lại.",
+    "clearSearch": "Xóa tìm kiếm",
     "categories": "Danh mục",
     "login": "Đăng nhập",
     "logout": "Đăng xuất",
@@ -20,6 +25,19 @@
     "language": "Ngôn ngữ",
     "cart": "Giỏ hàng",
     "warranties": "Bảo hành"
+  },
+  "Search": {
+    "home": "Trang chủ",
+    "title": "Kết quả tìm kiếm",
+    "query": "Kết quả cho “{query}”",
+    "resultsCount": "{count} sản phẩm liên quan",
+    "enterQuery": "Nhập ít nhất 2 ký tự vào thanh tìm kiếm để xem sản phẩm.",
+    "emptyTitle": "Không tìm thấy sản phẩm phù hợp",
+    "emptyDescription": "Hãy thử từ khóa khác hoặc mô tả rõ hơn sản phẩm bạn cần.",
+    "errorTitle": "Không thể tải kết quả tìm kiếm",
+    "errorDescription": "Vui lòng thử tìm kiếm lại sau.",
+    "backHome": "Về trang chủ",
+    "loading": "Đang tìm kiếm sản phẩm..."
   },
   "Cart": {
     "title": "Giỏ hàng",

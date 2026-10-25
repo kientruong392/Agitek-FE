@@ -14,6 +14,18 @@ export async function getAllProducts(): Promise<ApiResponse<Product[]>> {
   }
 }
 
+export async function semanticSearchProducts(query: string, limit = 6): Promise<ApiResponse<Product[]>> {
+  try {
+    const axiosInstance = await createServerAxios();
+    const res = await axiosInstance.get("/Product/semantic-search", {
+      params: { q: query, limit },
+    });
+    return res.data;
+  } catch (error) {
+    return getDefaultError(error) as ApiResponse<Product[]>;
+  }
+}
+
 export async function getProductById(id: number): Promise<ApiResponse<Product>> {
   try {
     const axiosInstance = await createServerAxios();
