@@ -303,6 +303,7 @@ export interface Product {
   status: ProductStatus;
   warrantyPeriod: number;
   categoryId: number;
+  categoryCode: string;
   brandId: number;
   userId: number;
   createdAt: string;
@@ -538,5 +539,24 @@ export interface UpdateLocationDTO {
   longitude?: number;
   isWarehouse?: boolean;
   status?: LocationStatus | null;
+}
+
+export enum PcComponentType {
+  Mainboard,
+  Cpu,
+  CpuCooler,
+  Ram,
+  GraphicsCard,
+  Storage,
+  PowerSupply,
+  Case,
+}
+
+export interface PcBuild {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  products: Product[];
 }
 

@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Check, LoaderCircle, MapPin, TicketPercent, Truck } from "lucide-react";
 import { applyVoucher, createGuestOrder, createOrder, type GuestCheckoutInput, type ShippingType } from "@/actions/order.action";
 import { getProductById } from "@/actions/product.action";
+import { getPcBuildCheckoutProducts } from "@/actions/pc-build.action";
 import { useCart } from "@/components/providers/CartProvider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -33,13 +34,17 @@ function formatPrice(value: number) {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 }
 
-type Props = { isLogin: boolean; account?: UserDTO; addresses: Address[] };
+type Props = { isLogin: boolean; account?: UserDTO; addresses: Address[]; builderProductIds?: number[] };
 type CheckoutProduct = { product: Product; quantity: number; unitPrice: number };
 
-export default function CheckoutPage({ isLogin, account, addresses }: Props) {
+export default function CheckoutPage({ isLogin, account, addresses, builderProductIds }: Props) {
   const t = useTranslations("Checkout");
+  const builderT = useTranslations("PcBuilder");
   const router = useRouter();
-  const { items, isLoading, clearItems } = useCart();
+  const { items, isLoading: cartLoading, clearItems } = useCart();
+  const isLoading = builderProductIds === undefined && cartLoading;
+  const builderItems = useMemo(() => builderProductIds?.map((productId) => ({ productId, quantity: 1 })), [builderProductIds]);
+  const checkoutItems = builderItems ?? items;
   const [products, setProducts] = useState<CheckoutProduct[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState(false);
@@ -66,7 +71,7 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
     void Promise.resolve().then(() => {
       if (!cancelled) setProductsLoading(true);
     });
-    void Promise.all(items.map(async (item) => {
+    const request = builderProductIds === undefined ? Promise.all(checkoutItems.map(async (item) => {
       const response = await getProductById(item.productId);
       if (!response.success || !response.data) return null;
       const product = response.data;
@@ -74,11 +79,17 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
         ? product.discountPrice
         : product.originalPrice;
       return { product, quantity: item.quantity, unitPrice };
-    })).then((result) => {
+    })) : getPcBuildCheckoutProducts(builderProductIds).then((response) => {
+      if (!response.success || !response.data) throw new Error(response.errorCode);
+      return response.data.map((product) => ({ product, quantity: 1,
+        unitPrice: product.discountPrice != null && product.discountPrice < product.originalPrice ? product.discountPrice : product.originalPrice }));
+    });
+    void request.then((result) => {
       if (!cancelled) {
         const loadedProducts = result.filter((item): item is CheckoutProduct => item !== null);
         setProducts(loadedProducts);
-        setProductsError(loadedProducts.length !== items.length);
+        setProductsError(loadedProducts.length !== checkoutItems.length
+          || (builderProductIds !== undefined && (builderProductIds.length !== 8 || loadedProducts.length !== builderProductIds.length)));
         setProductsLoading(false);
       }
     }).catch(() => {
@@ -89,7 +100,7 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
       }
     });
     return () => { cancelled = true; };
-  }, [items]);
+  }, [checkoutItems, builderProductIds]);
 
   const subtotal = useMemo(() => products.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [products]);
   const shippingFee = SHIPPING_FEES[shippingType];
@@ -164,12 +175,13 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
     },
     onSuccess: async (response) => {
       if (!response.success || !response.data) {
-        setFormError(response.message || t("orderError"));
-        toast.add({ title: response.message || t("orderError"), type: "error" });
+        const message = response.message || t("orderError");
+        setFormError(message);
+        toast.add({ title: message, type: "error" });
         return;
       }
-      const cartCleared = await clearItems();
-      if (!cartCleared) toast.add({ title: t("cartClearError"), type: "error" });
+      if (builderProductIds === undefined && !await clearItems())
+        toast.add({ title: t("cartClearError"), type: "error" });
       toast.add({ title: t("orderSuccess", { trackingNumber: response.data.trackingNumber }), type: "success" });
       if (paymentMethod === 1) {
         router.push(`/checkout/payment?orderId=${response.data.id}&trackingNumber=${encodeURIComponent(response.data.trackingNumber)}`);
@@ -221,12 +233,14 @@ export default function CheckoutPage({ isLogin, account, addresses }: Props) {
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
         </div>
-        <Badge variant="secondary" className="hidden sm:inline-flex">{t("itemCount", { count: items.reduce((sum, item) => sum + item.quantity, 0) })}</Badge>
+        <Badge variant="secondary" className="hidden sm:inline-flex">{t("itemCount", { count: checkoutItems.reduce((sum, item) => sum + item.quantity, 0) })}</Badge>
       </div>
 
       {isLoading || productsLoading ? (
         <div className="flex min-h-64 items-center justify-center gap-3 text-muted-foreground"><LoaderCircle className="size-5 animate-spin" />{t("loading")}</div>
-      ) : !items.length ? (
+      ) : builderProductIds !== undefined && productsError ? (
+        <Card><CardContent className="flex flex-col items-center gap-4 py-16 text-center"><p className="text-destructive">{builderT("incompatible")}</p><Button nativeButton={false} render={<Link href="/pc-builder" />}>{builderT("title")}</Button></CardContent></Card>
+      ) : !checkoutItems.length ? (
         <Card><CardContent className="flex flex-col items-center gap-4 py-16 text-center"><p className="text-muted-foreground">{t("emptyCart")}</p><Button render={<Link href="/" />}>{t("continueShopping")}</Button></CardContent></Card>
       ) : (
         <form onSubmit={handleSubmit} className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.85fr)] lg:gap-8">

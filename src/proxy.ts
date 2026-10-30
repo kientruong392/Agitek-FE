@@ -15,6 +15,15 @@ export default auth((req) => {
   const session = req.auth;
   const adminPath = pathname === "/admin" || pathname.startsWith("/admin/");
 
+  if (pathname === "/pc-builder" || pathname.startsWith("/pc-builder/")) {
+    if (!session?.user || session.error) {
+      return NextResponse.redirect(new URL("/login?callbackUrl=%2Fpc-builder", req.url));
+    }
+    if (session.user.role !== "Customer") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+  }
+
   if (adminPath) {
     if (!session?.user) {
       return NextResponse.redirect(new URL("/login", req.url));
