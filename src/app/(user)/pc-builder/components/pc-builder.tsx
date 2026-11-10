@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "motion/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Box, CircuitBoard, Cpu, Fan, Gpu, HardDrive, LoaderCircle, Lock, MemoryStick, Plus, Power, Save, CreditCard, Trash2, Zap } from "lucide-react";
+import { Box, CircuitBoard, Cpu, Fan, Gpu, HardDrive, LoaderCircle, Lock, MemoryStick, Pencil, Plus, Power, Save, CreditCard, Trash2, Zap } from "lucide-react";
 import { deletePcBuild, getPcBuildProducts, getPcBuilds, savePcBuild } from "@/actions/pc-build.action";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -20,15 +20,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/toast";
 import { PcComponentType, type PcBuild, type Product } from "@/types/model.types";
 
+// Seven satellites are spaced at 360/7-degree intervals on a 36%-radius circle.
 const SLOTS = [
-  { type: PcComponentType.Mainboard, code: "MAIN", key: "mainboard", icon: CircuitBoard, position: "col-start-2 row-start-2" },
-  { type: PcComponentType.Cpu, code: "CPU", key: "cpu", icon: Cpu, position: "col-start-2 row-start-1" },
-  { type: PcComponentType.CpuCooler, code: "COOL", key: "cooler", icon: Fan, position: "col-start-1 row-start-1" },
-  { type: PcComponentType.Ram, code: "RAM", key: "ram", icon: MemoryStick, position: "col-start-3 row-start-1" },
-  { type: PcComponentType.GraphicsCard, code: "VGA", key: "gpu", icon: Gpu, position: "col-start-3 row-start-2" },
-  { type: PcComponentType.Storage, code: "DRIVE", key: "storage", icon: HardDrive, position: "col-start-3 row-start-3" },
-  { type: PcComponentType.PowerSupply, code: "PSU", key: "psu", icon: Power, position: "col-start-2 row-start-3" },
-  { type: PcComponentType.Case, code: "CASE", key: "case", icon: Box, position: "col-start-1 row-start-2" },
+  { type: PcComponentType.Mainboard, code: "MAIN", key: "mainboard", icon: CircuitBoard, x: 50, y: 50 },
+  { type: PcComponentType.Cpu, code: "CPU", key: "cpu", icon: Cpu, x: 50, y: 14 },
+  { type: PcComponentType.CpuCooler, code: "COOL", key: "cooler", icon: Fan, x: 21.87, y: 27.55 },
+  { type: PcComponentType.Ram, code: "RAM", key: "ram", icon: MemoryStick, x: 78.13, y: 27.55 },
+  { type: PcComponentType.GraphicsCard, code: "VGA", key: "gpu", icon: Gpu, x: 85.10, y: 58.01 },
+  { type: PcComponentType.Storage, code: "DRIVE", key: "storage", icon: HardDrive, x: 65.62, y: 82.43 },
+  { type: PcComponentType.PowerSupply, code: "PSU", key: "psu", icon: Power, x: 34.38, y: 82.43 },
+  { type: PcComponentType.Case, code: "CASE", key: "case", icon: Box, x: 14.90, y: 58.01 },
 ] as const;
 
 type Parts = Partial<Record<PcComponentType, Product>>;
@@ -66,6 +67,7 @@ export default function PcBuilder({ userId }: { userId: string }) {
   const locale = useLocale();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const boardViewportRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -75,6 +77,8 @@ export default function PcBuilder({ userId }: { userId: string }) {
   const [choosing, setChoosing] = useState<PcComponentType | null>(null);
   const [search, setSearch] = useState("");
   const [saveOpen, setSaveOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameName, setRenameName] = useState("");
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const selection = useMemo(() => SLOTS.flatMap((slot) => parts[slot.type] ? [parts[slot.type]!.id] : []), [parts]);
   const mainboard = parts[PcComponentType.Mainboard];
@@ -88,6 +92,11 @@ export default function PcBuilder({ userId }: { userId: string }) {
     if (code === "PC_BUILD_MAINBOARD_REQUIRED") return t("selectMainboard");
     return t("requestError");
   };
+
+  useLayoutEffect(() => {
+    const viewport = boardViewportRef.current;
+    if (viewport) viewport.scrollLeft = (viewport.scrollWidth - viewport.clientWidth) / 2;
+  }, []);
 
   useLayoutEffect(() => {
     const board = boardRef.current;
@@ -124,6 +133,7 @@ export default function PcBuilder({ userId }: { userId: string }) {
       return response.data ?? [];
     },
   });
+  const currentBuild = builds.data?.find((build) => build.id === buildId);
   const context = choosing === PcComponentType.Mainboard ? [] : selection;
   const recommendations = useQuery({
     queryKey: ["pc-build-recommendations", choosing, context], enabled: choosing !== null, retry: false,
@@ -156,6 +166,22 @@ export default function PcBuilder({ userId }: { userId: string }) {
     },
     onError: () => toast.add({ title: t("requestError"), type: "error" }),
   });
+  const renameMutation = useMutation({
+    mutationFn: (build: PcBuild) => savePcBuild(renameName.trim(), build.products.map((product) => product.id), build.id),
+    onSuccess: (response) => {
+      if (!response.success || !response.data) {
+        toast.add({ title: errorMessage(response.errorCode), type: "error" });
+        return;
+      }
+      const updatedBuild = response.data;
+      setName(updatedBuild.name);
+      queryClient.setQueryData<PcBuild[]>(["pc-builds", userId], (current) => current?.map((build) => build.id === updatedBuild.id ? updatedBuild : build));
+      void queryClient.invalidateQueries({ queryKey: ["pc-builds", userId] });
+      setRenameOpen(false);
+      toast.add({ title: t("renamed"), type: "success" });
+    },
+    onError: () => toast.add({ title: t("requestError"), type: "error" }),
+  });
   const deleteMutation = useMutation({
     mutationFn: () => deletePcBuild(buildId!),
     onSuccess: (response) => {
@@ -166,7 +192,7 @@ export default function PcBuilder({ userId }: { userId: string }) {
     },
     onError: () => toast.add({ title: t("requestError"), type: "error" }),
   });
-  const busy = saveMutation.isPending || deleteMutation.isPending;
+  const busy = saveMutation.isPending || renameMutation.isPending || deleteMutation.isPending;
   const selectedProducts = Object.values(parts);
   const totalTdp = SLOTS.reduce((sum, slot) => sum + (slot.type !== PcComponentType.PowerSupply && parts[slot.type] ? productTdp(parts[slot.type]!) : 0), 0);
   const totalPrice = selectedProducts.reduce((sum, product) => sum + productPrice(product), 0);
@@ -197,7 +223,7 @@ export default function PcBuilder({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-3 py-6 pb-56 md:px-4 md:py-10 md:pb-36">
+    <div className="mx-auto max-w-7xl px-3 py-6 pb-10 md:px-4 md:py-10 md:pb-12">
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div><Badge variant="outline" className="mb-3">{t("badge")}</Badge><h1 className="text-3xl font-bold tracking-tight md:text-4xl">{t("title")}</h1><p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("description")}</p></div>
         <Button variant="outline" disabled={busy} onClick={() => selection.length ? setConfirmation({ kind: "clear" }) : (setBuildId(null), setName(""))}><Plus />{t("newBuild")}</Button>
@@ -214,14 +240,17 @@ export default function PcBuilder({ userId }: { userId: string }) {
             <SelectTrigger id="saved-pc-build" className="w-full sm:w-80"><SelectValue placeholder={t("selectBuild")}>{builds.data?.find((build) => build.id === buildId)?.name ?? t("selectBuild")}</SelectValue></SelectTrigger>
             <SelectContent>{builds.data?.map((build) => <SelectItem key={build.id} value={String(build.id)}>{build.name}</SelectItem>)}</SelectContent>
           </Select>
-          {buildId !== null && <Button variant="ghost" size="icon" disabled={busy} aria-label={t("deleteBuild")} onClick={() => setConfirmation({ kind: "delete" })}><Trash2 /></Button>}
+          {buildId !== null && <>
+            <Button variant="ghost" size="icon" disabled={busy || !currentBuild} aria-label={t("renameBuild")} title={t("renameBuild")} onClick={() => { if (currentBuild) { setRenameName(currentBuild.name); setRenameOpen(true); } }}><Pencil /></Button>
+            <Button variant="ghost" size="icon" disabled={busy} aria-label={t("deleteBuild")} onClick={() => setConfirmation({ kind: "delete" })}><Trash2 /></Button>
+          </>}
         </div>
         {builds.isError && <div className="flex items-center gap-3 text-sm text-destructive">{t("loadBuildsError")}<Button variant="outline" size="sm" onClick={() => void builds.refetch()}>{t("retry")}</Button></div>}
         <p className="text-xs text-muted-foreground">{t("savedHint")}</p>
       </Card>
 
-      <div className="relative rounded-3xl border bg-muted/20 p-3 sm:p-6 md:p-10" style={{ backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
-        <div ref={boardRef} className="relative grid h-[620px] grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_minmax(0,1fr)] grid-rows-[minmax(0,1fr)_minmax(0,1.6fr)_minmax(0,1fr)] gap-x-3 gap-y-7 sm:h-[680px] sm:gap-x-8 sm:gap-y-10 md:h-[740px] md:gap-x-14 md:gap-y-14">
+      <div ref={boardViewportRef} className="relative overflow-x-auto rounded-3xl border bg-muted/20 p-3 sm:p-6 md:p-10" style={{ backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
+        <div ref={boardRef} className="relative mx-auto size-[800px] sm:size-[830px] lg:size-[940px]">
           <svg className="pointer-events-none absolute inset-0 z-0 size-full" aria-hidden="true">
             {connections.map((connection) => {
               const active = Boolean(parts[connection.type]);
@@ -244,10 +273,10 @@ export default function PcBuilder({ userId }: { userId: string }) {
               || (slot.type === PcComponentType.PowerSupply && SLOTS.filter((part) => part.type !== PcComponentType.PowerSupply && parts[part.type]).length !== 7);
             const isMainboard = slot.type === PcComponentType.Mainboard;
             const Icon = slot.icon;
-            return <Card key={slot.type} data-pc-slot={slot.type} className={`relative z-10 min-w-0 w-full gap-0 place-self-center overflow-hidden py-0 ${slot.position} ${isMainboard ? "h-full max-w-[420px] border-2 border-primary bg-primary/5 shadow-lg shadow-primary/10" : "h-[135px] max-w-[190px] bg-card sm:h-[145px] md:h-[160px]"} ${disabled ? "opacity-50" : ""}`}>
-              <button type="button" disabled={disabled} onClick={() => openSlot(slot.type)} aria-label={t(product ? "replaceComponent" : "chooseComponent", { component: slotLabel(slot.type) })} className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-center transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-2 sm:px-3">
+            return <Card key={slot.type} data-pc-slot={slot.type} style={{ left: `${slot.x}%`, top: `${slot.y}%` }} className={`absolute z-10 min-w-0 -translate-x-1/2 -translate-y-1/2 gap-0 overflow-hidden py-0 ${isMainboard ? "h-[240px] w-[220px] border-2 border-primary bg-primary/5 shadow-lg shadow-primary/10 lg:h-[270px] lg:w-[280px]" : "h-[185px] w-[108px] bg-card sm:h-[190px] sm:w-[125px] lg:h-[195px] lg:w-[160px]"} ${disabled ? "opacity-50" : ""}`}>
+              <button type="button" disabled={disabled} onClick={() => openSlot(slot.type)} aria-label={t(product ? "replaceComponent" : "chooseComponent", { component: slotLabel(slot.type) })} className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-center transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-3">
                 <span className={`flex flex-wrap items-center justify-center gap-1 font-semibold ${isMainboard ? "text-xs sm:text-lg" : "text-[10px] sm:text-sm"}`}><Icon className={isMainboard ? "size-5 shrink-0 sm:size-7" : "size-4 shrink-0"} />{t(`components.${slot.key}`)}</span>
-                {product ? <><div className={`relative shrink-0 ${isMainboard ? "size-16 sm:size-24" : "size-9 sm:size-12"}`}><Image src={productImage(product)} alt={product.productName} fill sizes={isMainboard ? "96px" : "48px"} className="object-contain" unoptimized /></div><span className={`line-clamp-2 break-words leading-snug ${isMainboard ? "text-xs sm:text-sm" : "text-[9px] sm:text-xs"}`}>{product.productName}</span><span className={`font-semibold text-primary ${isMainboard ? "text-xs sm:text-base" : "text-[9px] sm:text-xs"}`}>{price(productPrice(product))}</span></> : <><span className={`flex items-center justify-center rounded-full border border-dashed border-primary/40 text-primary ${isMainboard ? "size-14 sm:size-20" : "size-8 sm:size-11"}`}>{disabled ? <Lock className="size-4" /> : <Plus className={isMainboard ? "size-7 sm:size-9" : "size-4 sm:size-5"} />}</span><span className={`text-muted-foreground ${isMainboard ? "text-xs sm:text-sm" : "text-[9px] sm:text-xs"}`}>{isMainboard ? t("startHere") : !mainboard ? t("locked") : slot.type === PcComponentType.PowerSupply && disabled ? t("psuLast") : t("select")}</span></>}
+                {product ? <><div className={`relative shrink-0 ${isMainboard ? "size-16 sm:size-24" : "size-8 sm:size-10"}`}><Image src={productImage(product)} alt={product.productName} fill sizes={isMainboard ? "96px" : "40px"} className="object-contain" unoptimized /></div><span title={product.productName} className={`line-clamp-2 w-full min-w-0 leading-snug [overflow-wrap:anywhere] ${isMainboard ? "text-xs sm:text-sm" : "text-[9px] sm:text-xs"}`}>{product.productName}</span><span className={`font-semibold text-primary ${isMainboard ? "text-xs sm:text-base" : "text-[9px] sm:text-xs"}`}>{price(productPrice(product))}</span></> : <><span className={`flex items-center justify-center rounded-full border border-dashed border-primary/40 text-primary ${isMainboard ? "size-14 sm:size-20" : "size-7 sm:size-9"}`}>{disabled ? <Lock className="size-4" /> : <Plus className={isMainboard ? "size-7 sm:size-9" : "size-4 sm:size-5"} />}</span><span className={`text-muted-foreground ${isMainboard ? "text-xs sm:text-sm" : "text-[9px] sm:text-xs"}`}>{isMainboard ? t("startHere") : !mainboard ? t("locked") : slot.type === PcComponentType.PowerSupply && disabled ? t("psuLast") : t("select")}</span></>}
               </button>
               {product && <Button variant="ghost" size="sm" className="h-7 shrink-0 rounded-none text-xs" disabled={busy} aria-label={t("removeComponent", { component: slotLabel(slot.type) })} onClick={() => {
                 if (isMainboard) setConfirmation({ kind: "clear" });
@@ -255,13 +284,12 @@ export default function PcBuilder({ userId }: { userId: string }) {
               }}><Trash2 className="size-3" /><span className="hidden sm:inline">{t("remove")}</span></Button>}
             </Card>;
           })}
-          <div className="z-10 col-start-1 row-start-3 flex flex-col items-center justify-center gap-2 text-center text-muted-foreground"><CircuitBoard className="size-7 opacity-40" /><span className="text-xs font-medium sm:text-sm">{t("progress", { count: selection.length })}</span><span className="hidden max-w-40 text-xs sm:block">{t("selectMainboard")}</span></div>
         </div>
       </div>
 
       <p className="mt-5 text-xs leading-6 text-muted-foreground">{t("compatibilityNote")}</p>
 
-      <div className="fixed inset-x-3 bottom-3 z-30 mx-auto max-w-7xl rounded-2xl border bg-card/95 p-4 shadow-xl backdrop-blur md:bottom-4">
+      <div className="mt-6 rounded-2xl border bg-card p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap gap-5"><div><p className="text-xs text-muted-foreground">{t("totalPrice")}</p><strong className="text-xl text-primary md:text-2xl">{price(totalPrice)}</strong></div><div><p className="text-xs text-muted-foreground">{t("totalTdp")}</p><strong className="flex items-center gap-1 text-base"><Zap className="size-4" />{totalTdp.toLocaleString(locale, { maximumFractionDigits: 2 })} W</strong><p className="text-xs text-muted-foreground">{t("minimumPsu", { watt: requiredWatt })}</p></div></div>
           <div className="flex w-full gap-2 sm:w-auto">
@@ -288,6 +316,7 @@ export default function PcBuilder({ userId }: { userId: string }) {
       </Dialog>
 
       <Dialog open={saveOpen} onOpenChange={setSaveOpen}><DialogContent><DialogHeader><DialogTitle>{t("saveBuild")}</DialogTitle><DialogDescription>{t("savedHint")}</DialogDescription></DialogHeader><form onSubmit={(event) => { event.preventDefault(); if (name.trim()) saveMutation.mutate(); }} className="space-y-5"><div className="space-y-2"><Label htmlFor="pc-build-name">{t("buildName")}</Label><Input id="pc-build-name" value={name} onChange={(event) => setName(event.target.value)} maxLength={100} required placeholder={t("namePlaceholder")} /></div><DialogFooter><Button type="button" variant="outline" onClick={() => setSaveOpen(false)}>{t("cancel")}</Button><Button type="submit" disabled={!name.trim() || saveMutation.isPending}>{saveMutation.isPending && <LoaderCircle className="animate-spin" />}{t("saveBuild")}</Button></DialogFooter></form></DialogContent></Dialog>
+      <Dialog open={renameOpen} onOpenChange={(open) => { if (!renameMutation.isPending) setRenameOpen(open); }}><DialogContent><DialogHeader><DialogTitle>{t("renameBuild")}</DialogTitle><DialogDescription>{t("renameHint")}</DialogDescription></DialogHeader><form onSubmit={(event) => { event.preventDefault(); if (currentBuild && renameName.trim() && renameName.trim() !== currentBuild.name) renameMutation.mutate(currentBuild); }} className="space-y-5"><div className="space-y-2"><Label htmlFor="pc-build-rename">{t("buildName")}</Label><Input id="pc-build-rename" value={renameName} onChange={(event) => setRenameName(event.target.value)} maxLength={100} required autoFocus /></div><DialogFooter><Button type="button" variant="outline" disabled={renameMutation.isPending} onClick={() => setRenameOpen(false)}>{t("cancel")}</Button><Button type="submit" disabled={!currentBuild || !renameName.trim() || renameName.trim() === currentBuild.name || renameMutation.isPending}>{renameMutation.isPending && <LoaderCircle className="animate-spin" />}{t("renameBuild")}</Button></DialogFooter></form></DialogContent></Dialog>
       <Dialog open={confirmation !== null} onOpenChange={(open) => { if (!open) setConfirmation(null); }}><DialogContent><DialogHeader><DialogTitle>{t("confirmTitle")}</DialogTitle><DialogDescription>{t(confirmation?.kind === "mainboard" ? "changeMainboardHint" : confirmation?.kind === "delete" ? "deleteHint" : "resetHint")}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setConfirmation(null)}>{t("cancel")}</Button><Button variant={confirmation?.kind === "delete" ? "destructive" : "default"} onClick={confirm}>{t("confirm")}</Button></DialogFooter></DialogContent></Dialog>
     </div>
   );
